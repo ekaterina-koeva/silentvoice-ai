@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SilentVoice AI | Communication Without Limits</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="app-shell">
+
+<!-- ── TOPBAR ────────────────────────────────── -->
+<header class="topbar">
+  <a class="brand" href="/">
+    <img src="/static/logo-dark.png" alt="SilentVoice AI">
+    <div>
+      <div class="brand-name">SilentVoice <span class="brand-ai">AI</span></div>
+      <div class="brand-sub">Communication Without Limits</div>
+    </div>
+  </a>
+
+  <nav class="mode-switcher">
+    <button class="mode-btn active" onclick="setMode('home',this)">🏠 Home Mode</button>
+    <button class="mode-btn" onclick="setMode('clinical',this)">🩺 Clinical Mode</button>
+    <button class="mode-btn" onclick="setMode('family',this)">👨‍👩‍👧 Family Mode</button>
+  </nav>
+
+  <div class="topbar-right">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="carer-label">Carer Mode</span>
+      <label class="switch">
+        <input type="checkbox" id="carerToggle" onchange="toggleCarer()">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="topbar-divider"></div>
+    <button class="icon-btn">👤</button>
+    <button class="icon-btn">⚙️ Settings</button>
+  </div>
+</header>
+
+<!-- ── SMART SUGGESTIONS ─────────────────────── -->
+<div class="suggestions-bar">
+  <div class="suggestions-label">
+    <span class="sugg-icon">✦</span>
+    <div>
+      <div class="sugg-title">Smart Suggestions</div>
+      <div class="sugg-sub">Based on time &amp; history</div>
+    </div>
+  </div>
+  <div class="suggestions-chips" id="suggestionsChips"></div>
+  <div class="suggestions-hint">
+    👁 <strong style="color:#e2e8f0">Blink to select</strong><br>Look at a phrase and blink
+  </div>
+</div>
+
+<!-- ── MAIN ──────────────────────────────────── -->
+<main class="main-layout" id="mainLayout">
+
+  <!-- LEFT ── Camera & Profile -->
+  <section class="left-panel">
+
+    <div class="panel camera-panel">
+      <div class="panel-hdr">
+        <div class="panel-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/></svg>
+          LIVE CAMERA &amp; TRACKING
+        </div>
+        <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+      </div>
+      <div class="video-frame">
+        <video id="videoFeed" autoplay playsinline></video>
+        <canvas id="meshCanvas" class="mesh-canvas"></canvas>
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+      </div>
+      <div class="signal-row">
+
+        <div class="signal-card eye-card">
+          <div class="sig-icon">👁️</div>
+          <div class="sig-info">
+            <span class="sig-label">Eye Gaze</span>
+            <span class="sig-sub">Looking</span>
+            <strong id="gazeStatus" class="sig-val">CENTER</strong>
+          </div>
+          <div class="gaze-dots" id="gazeDots">
+            <span></span><span></span><span class="on"></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="signal-card blink-card">
+          <div class="sig-icon">😑</div>
+          <div class="sig-info">
+            <span class="sig-label">Blink</span>
+            <span class="sig-sub">Status</span>
+            <strong id="blinkStatus" class="sig-val cyan">READY</strong>
+          </div>
+          <div class="waveform">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="signal-card head-card">
+          <div class="sig-icon">🙂</div>
+          <div class="sig-info">
+            <span class="sig-label">Head Movement</span>
+            <span class="sig-sub">Position</span>
+            <strong id="headStatus" class="sig-val">CENTER</strong>
+          </div>
+          <div class="head-arrows">
+            <button class="arr">←</button>
+            <button class="arr">↑</button>
+            <button class="arr">→</button>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /camera -->
+
+    <div class="panel profile-panel">
+      <div class="panel-title" style="margin-bottom:8px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Accessibility Profile
+      </div>
+      <select id="profileSelect" class="custom-select" onchange="loadCards()">
+        <option value="general">General Communication</option>
+        <option value="autism">Autism Support</option>
+        <option value="cerebral_palsy">Cerebral Palsy Support</option>
+        <option value="stroke">Stroke Recovery</option>
+        <option value="voice_loss">Voice Loss Recovery</option>
+      </select>
+      <div class="profile-list" id="profileList"></div>
+      <p class="helper-text">Profiles adapt vocabulary and language to individual needs. <a href="#" class="link-cyan">Learn more →</a></p>
+    </div>
+
+    <button class="my-phrases-btn">
+      <div class="mph-left">
+        <span class="mph-star">★</span>
+        <div>
+          <div class="mph-title">My Phrases</div>
+          <div class="mph-sub">Your saved favourite phrases</div>
+        </div>
+      </div>
+      <span class="mph-arrow">›</span>
+    </button>
+
+  </section><!-- /left -->
+
+  <!-- CENTER ── Cards & Phrase -->
+  <section class="center-panel">
+
+    <div class="panel cards-panel">
+      <div class="panel-hdr">
+        <div class="panel-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Communication Cards
+          <span class="panel-title-sub">Look at a card and blink to select</span>
+        </div>
+        <button class="edit-cards-btn" onclick="alert('Edit Cards coming soon')">✏️ Edit Cards</button>
+      </div>
+      <div id="cardsGrid" class="cards-grid"></div>
+    </div>
+
+    <div class="panel phrase-panel">
+      <div class="phrase-label">Selected / Generated Phrase</div>
+      <div class="phrase-display">
+        <div class="phrase-text" id="phraseText">Select a card or generate a phrase...</div>
+        <div class="phrase-cursor" id="phraseCursor" style="display:none;"></div>
+        <div class="phrase-dots">
+          <span class="on"></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="kw-label" id="kwLabel" style="display:none;">Keywords Detected</div>
+      <div class="keywords-display" id="keywordsDisplay"></div>
+      <div class="action-row">
+        <button class="action-btn btn-generate" onclick="generatePhrase()">
+          ✦ Generate AI Phrase
+          <span class="btn-sub">Create a personalised phrase</span>
+        </button>
+        <button class="action-btn btn-speak" onclick="speakPhrase()">
+          🔊 Speak
+          <span class="btn-sub">Text to speech</span>
+        </button>
+        <button class="action-btn btn-repeat" onclick="repeatPhrase()">
+          🔁 Repeat
+          <span class="btn-sub">Last phrase</span>
+        </button>
+        <button class="action-btn btn-clear" onclick="clearSelection()">
+          🗑 Clear
+          <span class="btn-sub">Clear all</span>
+        </button>
+      </div>
+    </div>
+
+  </section><!-- /center -->
+
+  <!-- RIGHT ── History & Info -->
+  <section class="right-panel">
+
+    <!-- Carer panel — appears when Carer Mode ON -->
+    <div class="panel carer-panel" id="carerPanel">
+      <div class="panel-hdr">
+        <div class="panel-title">
+          👩‍⚕️ Carer View
+          <span class="panel-title-sub">Live session monitoring</span>
+        </div>
+        <span class="live-badge"><span class="live-dot"></span>ACTIVE</span>
+      </div>
+      <div class="carer-stats">
+        <div class="carer-stat"><span class="cst-num" id="cstPhrases">0</span><span class="cst-lbl">Phrases</span></div>
+        <div class="carer-stat"><span class="cst-num" id="cstTime">00:00</span><span class="cst-lbl">Session</span></div>
+        <div class="carer-stat"><span class="cst-num" id="cstLast">—</span><span class="cst-lbl">Last active</span></div>
+      </div>
+      <div class="carer-last">
+        <span class="cl-lbl">Last Phrase</span>
+        <div class="cl-text" id="carerLastText">Nothing yet...</div>
+      </div>
+      <span class="carer-notes-lbl">Session Notes</span>
+      <textarea class="carer-textarea" placeholder="Add notes about this session..."></textarea>
+    </div>
+
+    <!-- History — always visible -->
+    <div class="panel history-panel">
+      <div class="panel-hdr">
+        <div class="panel-title">
+          🕐 Communication History
+          <span class="panel-title-sub">Session history &amp; timestamps</span>
+        </div>
+      </div>
+      <div class="history-list" id="historyList">
+        <div class="history-empty">No phrases yet this session.</div>
+      </div>
+      <div class="history-actions">
+        <button class="btn-export" onclick="exportHistory()">
+          📄 Export<br><span class="btn-export-sub">PDF / CSV</span>
+        </button>
+        <button class="btn-clr-hist" onclick="clearHistory()">🗑 Clear History</button>
+      </div>
+    </div>
+
+    <!-- Clinical panel — appears in Clinical Mode -->
+    <div class="panel clinical-panel" id="clinicalPanel">
+      <div class="panel-title" style="margin-bottom:10px;">🏥 Clinical Summary</div>
+      <div class="clinical-row"><span>Patient profile</span><strong id="clinProfile">General</strong></div>
+      <div class="clinical-row"><span>Session started</span><strong id="clinStart">—</strong></div>
+      <div class="clinical-row"><span>Total phrases</span><strong id="clinTotal">0</strong></div>
+      <div class="clinical-row"><span>Most used phrase</span><strong id="clinTop">—</strong></div>
+      <button class="btn-clinical-export" onclick="exportHistory()">📄 Export Clinical Report</button>
+    </div>
+
+    <!-- Ethics -->
+    <div class="panel ethics-panel">
+      <div class="ethics-shield">🛡️</div>
+      <div>
+        <div class="ethics-title">Safe &amp; Ethical AI</div>
+        <p class="ethics-text">SilentVoice AI is designed for communication support only. It does not diagnose, monitor or treat medical conditions.</p>
+        <a href="#" class="link-cyan">Learn more about our ethics →</a>
+      </div>
+    </div>
+
+  </section><!-- /right -->
+
+</main>
+
+<!-- ── FOOTER ─────────────────────────────────── -->
+<footer class="app-footer">
+  <div class="footer-left">
+    <span class="footer-lock">🔒</span>
+    Your privacy is protected. All processing happens locally.
+  </div>
+  <span>v0.1.0 &nbsp;|&nbsp; SilentVoice AI by Ekaterina Koeva</span>
+</footer>
+
+</div><!-- /app-shell -->
+
+<script src="/static/app.js"></script>
+</body>
+</html>

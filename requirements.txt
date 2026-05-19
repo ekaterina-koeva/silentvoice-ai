@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+opencv-python
+mediapipe
+pyttsx3
+gTTS
+anthropic
+python-multipart
