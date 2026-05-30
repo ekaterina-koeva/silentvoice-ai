@@ -3,21 +3,22 @@ import pyttsx3
 
 class Speaker:
     """
-    Text-to-speech engine for SilentVoice AI.
-    Uses pyttsx3 for offline TTS.
+    Offline text-to-speech using pyttsx3.
+    Uses the system voice engine (Windows SAPI5 / macOS NSSpeech / Linux espeak).
+    No internet required.
     """
 
-    def __init__(self):
-        self.engine = pyttsx3.init()
-        self.engine.setProperty('rate', 145)
-        self.engine.setProperty('volume', 1.0)
-        voices = self.engine.getProperty('voices')
-        if voices and len(voices) > 1:
-            self.engine.setProperty('voice', voices[1].id)
+    def __init__(self, rate: int = 165, volume: float = 1.0):
+        self.rate = rate
+        self.volume = volume
 
-    def speak(self, text: str):
-        self.engine.say(text)
-        self.engine.runAndWait()
-
-    def set_rate(self, rate: int):
-        self.engine.setProperty('rate', rate)
+    def speak(self, phrase: str):
+        if not phrase:
+            return
+        # Re-init engine per call to avoid run-loop lock-ups on repeated use
+        engine = pyttsx3.init()
+        engine.setProperty("rate", self.rate)
+        engine.setProperty("volume", self.volume)
+        engine.say(phrase)
+        engine.runAndWait()
+        engine.stop()

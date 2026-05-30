@@ -255,6 +255,7 @@ async function generatePhrase() {
 // ── SPEAK ─────────────────────────────────────────────
 async function speakPhrase() {
   if (!selectedPhrase) return;
+    if ("speechSynthesis" in window) { const u=new SpeechSynthesisUtterance(selectedPhrase); u.rate=0.95; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); return; }
   try { await fetch("/speak",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phrase:selectedPhrase})}); } catch {}
 }
 
