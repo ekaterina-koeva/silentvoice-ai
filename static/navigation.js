@@ -1,65 +1,77 @@
 
-// SilentVoice AI — Gaze navigation layer
-// Connects window.SVTracking (gaze + blink) to the communication cards.
-// LEFT/RIGHT move the focus highlight; blink selects; UP clears.
+// SilentVoice AI — Auto-scanning navigation
+// Cards highlight one at a time on a timer. Blink selects the highlighted card.
+// Look UP to pause/restart scanning. Designed for hands-free use (ALS, stroke, CP).
 
 (function () {
-  let focusIndex = -1;
+  const SCAN_INTERVAL = 2200; // ms each card stays highlighted
+  let scanIndex = -1;
+  let scanning = false;
+  let timer = null;
   let lastGaze = "CENTER";
-  let gazeReady = false;
 
   function cards() {
     return Array.from(document.querySelectorAll(".comm-card"));
   }
 
-  function paintFocus() {
+  function paint() {
     const cs = cards();
     cs.forEach((c, i) => {
-      if (i === focusIndex) c.classList.add("sv-focus");
+      if (i === scanIndex) c.classList.add("sv-focus");
       else c.classList.remove("sv-focus");
     });
-    if (focusIndex >= 0 && cs[focusIndex]) {
-      cs[focusIndex].scrollIntoView({ block: "nearest", behavior: "smooth" });
+    if (scanIndex >= 0 && cs[scanIndex]) {
+      cs[scanIndex].scrollIntoView({ block: "center", behavior: "smooth" });
     }
   }
 
-  function moveFocus(step) {
+  function step() {
     const cs = cards();
     if (!cs.length) return;
-    if (focusIndex < 0) focusIndex = 0;
-    else focusIndex = (focusIndex + step + cs.length) % cs.length;
-    paintFocus();
+    scanIndex = (scanIndex + 1) % cs.length;
+    paint();
   }
 
-  // Called by tracking.js when a long blink fires
+  function startScan() {
+    if (scanning) return;
+    scanning = true;
+    if (scanIndex < 0) scanIndex = 0;
+    paint();
+    timer = setInterval(step, SCAN_INTERVAL);
+  }
+
+  function stopScan() {
+    scanning = false;
+    if (timer) { clearInterval(timer); timer = null; }
+  }
+
+  // Blink selects the currently highlighted card
   window.onSVSelect = function () {
     const cs = cards();
-    if (focusIndex >= 0 && cs[focusIndex]) {
-      cs[focusIndex].click();
+    if (scanIndex >= 0 && cs[scanIndex]) {
+      cs[scanIndex].click();
     }
   };
 
   function tick() {
     const t = window.SVTracking;
     if (t && t.ready) {
-      gazeReady = true;
+      if (!scanning) startScan();
       const g = t.gaze;
       if (g !== lastGaze) {
-        if (g === "RIGHT") moveFocus(1);
-        else if (g === "LEFT") moveFocus(-1);
-        else if (g === "UP") { focusIndex = -1; paintFocus(); }
+        // Look UP = pause + restart from first card
+        if (g === "UP") { stopScan(); scanIndex = 0; paint(); startScan(); }
         lastGaze = g;
       }
     }
     requestAnimationFrame(tick);
   }
 
-  // Inject focus highlight style
   const style = document.createElement("style");
   style.textContent =
-    ".comm-card.sv-focus { outline: 4px solid #38bdf8 !important; " +
-    "outline-offset: 2px; box-shadow: 0 0 18px rgba(56,189,248,0.8) !important; " +
-    "transform: scale(1.04); transition: all 0.12s ease; }";
+    ".comm-card.sv-focus { outline: 5px solid #38bdf8 !important; " +
+    "outline-offset: 2px; box-shadow: 0 0 26px rgba(56,189,248,0.95) !important; " +
+    "transform: scale(1.05); transition: all 0.18s ease; }";
   document.head.appendChild(style);
 
   if (document.readyState === "loading")
