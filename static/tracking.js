@@ -5,7 +5,7 @@
   const LEFT_IRIS = 468, RIGHT_IRIS = 473;
   const LEFT_T = 0.44, RIGHT_T = 0.56, UP_T = 0.38;
   const SMOOTH = 5, DEBOUNCE = 4;
-  const BLINK_EAR = 0.25, BLINK_FRAMES = 10, COOLDOWN = 15;
+  const BLINK_EAR = 0.25, BLINK_FRAMES = 7, COOLDOWN = 15;
 
   let xs = [], ys = [], last = "CENTER", cand = "CENTER", candN = 0;
   let blinkFrames = 0, cooldown = 0;

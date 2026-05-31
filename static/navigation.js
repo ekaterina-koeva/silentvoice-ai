@@ -1,10 +1,10 @@
 
 // SilentVoice AI — Auto-scanning navigation
 // Cards highlight one at a time on a timer. Blink selects the highlighted card.
-// Look UP to pause/restart scanning. Designed for hands-free use (ALS, stroke, CP).
+// Look UP to restart scanning from the first card. Hands-free (ALS, stroke, CP).
 
 (function () {
-  const SCAN_INTERVAL = 2200; // ms each card stays highlighted
+  const SCAN_INTERVAL = 3500; // ms each card stays highlighted (calmer pace)
   let scanIndex = -1;
   let scanning = false;
   let timer = null;
@@ -20,9 +20,7 @@
       if (i === scanIndex) c.classList.add("sv-focus");
       else c.classList.remove("sv-focus");
     });
-    if (scanIndex >= 0 && cs[scanIndex]) {
-      cs[scanIndex].scrollIntoView({ block: "center", behavior: "smooth" });
-    }
+    // No forced scrollIntoView — lets the user read freely without being yanked.
   }
 
   function step() {
@@ -45,7 +43,6 @@
     if (timer) { clearInterval(timer); timer = null; }
   }
 
-  // Blink selects the currently highlighted card
   window.onSVSelect = function () {
     const cs = cards();
     if (scanIndex >= 0 && cs[scanIndex]) {
@@ -59,7 +56,6 @@
       if (!scanning) startScan();
       const g = t.gaze;
       if (g !== lastGaze) {
-        // Look UP = pause + restart from first card
         if (g === "UP") { stopScan(); scanIndex = 0; paint(); startScan(); }
         lastGaze = g;
       }
