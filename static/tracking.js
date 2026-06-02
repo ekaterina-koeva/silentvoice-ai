@@ -1,28 +1,23 @@
 // SilentVoice AI — Browser-side MediaPipe tracking
-// Reads live video, computes gaze + blink, updates UI, exposes window.SVTracking
+// Reads live video, computes gaze, tracks dwell (steady CENTER gaze), exposes window.SVTracking
 
 (function () {
   const LEFT_IRIS = 468, RIGHT_IRIS = 473;
   const LEFT_T = 0.44, RIGHT_T = 0.56, UP_T = 0.38;
   const SMOOTH = 5, DEBOUNCE = 4;
-  const BLINK_EAR = 0.25, BLINK_FRAMES = 7, COOLDOWN = 15;
 
   let xs = [], ys = [], last = "CENTER", cand = "CENTER", candN = 0;
-  let blinkFrames = 0, cooldown = 0;
+  let dwellStart = 0;
 
-  window.SVTracking = { gaze: "CENTER", blink: false, ready: false };
-
-  function ear(lm, i) {
-    const p1 = lm[i[0]], p2 = lm[i[1]], p3 = lm[i[2]], p4 = lm[i[3]];
-    const v = Math.abs(p2.y - p4.y), h = Math.abs(p1.x - p3.x);
-    return h === 0 ? 0 : v / h;
-  }
+  window.SVTracking = { gaze: "CENTER", dwellMs: 0, ready: false };
 
   function onResults(res) {
     const badgeG = document.getElementById("gazeStatus");
     const badgeB = document.getElementById("blinkStatus");
     if (!res.multiFaceLandmarks || !res.multiFaceLandmarks.length) {
       if (badgeG) badgeG.textContent = "\u{1F441}\uFE0F Gaze: \u2014";
+      window.SVTracking.dwellMs = 0;
+      dwellStart = 0;
       return;
     }
     const lm = res.multiFaceLandmarks[0];
@@ -44,19 +39,21 @@
     window.SVTracking.gaze = last;
     if (badgeG) badgeG.textContent = "\u{1F441}\uFE0F Gaze: " + last;
 
-    const le = ear(lm, [159, 145, 33, 133]);
-    const re = ear(lm, [386, 374, 362, 263]);
-    const avg = (le + re) / 2;
-    let fired = false;
-    if (cooldown > 0) cooldown--;
-    else if (avg < BLINK_EAR) blinkFrames++;
-    else {
-      if (blinkFrames >= BLINK_FRAMES) { fired = true; cooldown = COOLDOWN; }
-      blinkFrames = 0;
+    // Dwell: how long has gaze been steady on CENTER (looking at the screen)?
+    const now = performance.now();
+    if (last === "CENTER") {
+      if (dwellStart === 0) dwellStart = now;
+      window.SVTracking.dwellMs = now - dwellStart;
+    } else {
+      dwellStart = 0;
+      window.SVTracking.dwellMs = 0;
     }
-    window.SVTracking.blink = fired;
-    if (badgeB) badgeB.textContent = fired ? "\u{1F611} Blink: SELECT" : "\u{1F611} Blink: \u2014";
-    if (fired && typeof window.onSVSelect === "function") window.onSVSelect();
+    if (badgeB) {
+      const s = (window.SVTracking.dwellMs / 1000).toFixed(1);
+      badgeB.textContent = last === "CENTER"
+        ? "\u{1F441}\uFE0F Hold: " + s + "s"
+        : "\u{1F441}\uFE0F Hold: \u2014";
+    }
   }
 
   function start() {
