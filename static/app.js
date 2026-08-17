@@ -213,6 +213,7 @@ function selectCard(el, phrase) {
     el.classList.add("selected");
     setPhrase(phrase);
     addToHistory(phrase, "💬");
+    if (typeof speakPhrase === "function") speakPhrase();
   } else { clearSelection(); }
 }
 
