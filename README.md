@@ -8,14 +8,15 @@
 
 ## What is SilentVoice AI?
 
-SilentVoice AI uses a camera, artificial intelligence, and computer vision to detect eye movement, facial expressions, head movement, and communication cues — and transforms them into text or spoken voice, in real time.
+SilentVoice AI uses a standard camera, computer vision, and a large language model to detect eye gaze, blinks, and head movement — and turns them into text and spoken output, in real time. It runs in the browser and requires no specialist hardware.
 
 The system is designed for people with:
+
 - Autism
-- Cerebral Palsy
-- Stroke Recovery
-- Voice Loss (throat cancer, vocal cord damage)
-- Speech Impairments
+- Cerebral palsy
+- Stroke recovery
+- Voice loss (throat cancer, vocal cord damage)
+- Speech impairments
 - Any communication difficulty
 
 ---
@@ -24,6 +25,7 @@ The system is designed for people with:
 
 - It does not read minds
 - It does not provide medical diagnosis
+- It does not detect emotion or pain
 - It is not a medical device
 - It is not NHS-certified
 
@@ -31,16 +33,20 @@ It is a communication support tool.
 
 ---
 
-## Features (MVP)
+## Features
 
-- Eye tracking (left / right / center)
-- Blink detection (long blink = SELECT)
+- Gaze tracking (left / right / centre / up)
+- Dwell-based selection — hold a steady centre gaze for 2 seconds to select
+- Blink detection (available, not used for selection)
 - Head movement (nod = YES, shake = NO)
 - Communication cards with predefined phrases
-- AI-assisted sentence generation (soft language)
-- Real-time text-to-speech output
+- AI-assisted sentence generation using soft, non-alarming language
+- Browser-based text-to-speech, with automatic language detection (Bulgarian / English)
 - Carer Mode with communication history
-- Accessibility profiles (Autism, Cerebral Palsy, Stroke, Voice Loss)
+- Accessibility profiles (General, Autism, Cerebral Palsy, Stroke, Voice Loss)
+
+Selection was originally blink-based. It was replaced with dwell-based selection because
+blinks caused too many unintended activations.
 
 ---
 
@@ -49,12 +55,11 @@ It is a communication support tool.
 | Layer | Technology |
 |-------|-----------|
 | Backend | Python + FastAPI |
-| Vision | OpenCV + MediaPipe |
+| Vision | MediaPipe Face Mesh (browser) |
 | AI | Anthropic Claude API |
-| TTS | pyttsx3 / gTTS |
+| TTS | Web Speech API (browser), pyttsx3 / gTTS (server) |
 | Frontend | HTML + CSS + JavaScript |
-| Database | SQLite |
-| Hosting | Railway / Render |
+| Hosting | Render |
 
 ---
 
@@ -63,6 +68,7 @@ It is a communication support tool.
 ```
 silentvoice/
 ├── main.py
+├── requirements.txt
 ├── vision/
 │   ├── face_tracker.py
 │   ├── eye_tracker.py
@@ -75,11 +81,13 @@ silentvoice/
 │   └── speaker.py
 ├── cards/
 │   └── phrases.py
-├── static/
-│   ├── index.html
-│   ├── style.css
-│   └── app.js
-└── requirements.txt
+└── static/
+    ├── index.html
+    ├── style.css
+    ├── app.js
+    ├── tracking.js
+    ├── navigation.js
+    └── icons.js
 ```
 
 ---
@@ -87,48 +95,72 @@ silentvoice/
 ## Setup
 
 ```bash
-git clone https://github.com/yourusername/silentvoice-ai
-cd silentvoice
+git clone https://github.com/ekaterina-koeva/silentvoice-ai
+cd silentvoice-ai
 python -m venv venv
-source venv/bin/activate  # Mac/Linux
+source venv/bin/activate  # macOS / Linux
 # venv\Scripts\activate   # Windows
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
+
+An Anthropic API key is required for AI phrase generation. Set it as an
+environment variable before starting the server:
+
+```bash
+export ANTHROPIC_API_KEY=your-key-here   # macOS / Linux
+# $env:ANTHROPIC_API_KEY="your-key-here" # Windows PowerShell
+```
+
+---
+
+## Status
+
+This is an early-stage prototype. It has not undergone clinical validation or
+formal usability testing, and should not be used as a primary communication
+device in a clinical setting without evaluation by a qualified speech and
+language therapist.
 
 ---
 
 ## Roadmap
 
 - [x] Face tracking
-- [x] Eye tracking
+- [x] Gaze tracking
 - [x] Blink detection
 - [x] Head movement
 - [x] Communication cards
 - [x] AI phrase generation
 - [x] Text-to-speech
-- [ ] Mobile version (Flutter)
-- [ ] arXiv research preprint
-- [ ] NHS pilot feedback
+- [x] Dwell-based selection
+- [ ] Emergency alert button
+- [ ] Icon and colour mode for non-readers
+- [ ] Offline phrase cache
+- [ ] Per-user gaze calibration
+- [ ] Persistent storage (SQLite)
+- [ ] Multi-language support
+- [ ] Mobile application
+- [ ] Research preprint
+- [ ] Clinical and user feedback
 
 ---
 
-## Mission
+## Author
 
-SilentVoice AI is built by an independent AI accessibility founder with one goal:
-
-**To make communication more accessible, more human, and more independent — through AI and accessible technology.**
+Ekaterina Koeva — independent AI accessibility developer and founder, Sofia, Bulgaria.
 
 ---
 
 ## Contributing
 
-This is an open project. Feedback from carers, therapists, accessibility professionals, and people with communication needs is welcome.
+This is an open project. Feedback from carers, therapists, accessibility
+professionals, and people with communication needs is welcome.
 
-Open an issue or reach out via LinkedIn.
+Please open an issue on GitHub:
+https://github.com/ekaterina-koeva/silentvoice-ai/issues
 
 ---
 
-## License
+## Licence
 
-MIT License
+Released under the MIT Licence. See [LICENSE](LICENSE) for the full text.
