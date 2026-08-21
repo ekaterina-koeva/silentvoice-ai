@@ -268,11 +268,26 @@ function repeatPhrase() {
   speakPhrase();
 }
 
+const EMERGENCY_PHRASE = "Emergency: please come immediately";
+
+async function triggerEmergency() {
+  setPhrase(EMERGENCY_PHRASE);
+  addToHistory(EMERGENCY_PHRASE, "🚨", true);
+  speakPhrase();
+
+  try {
+    const res = await fetch("/emergency", { method: "POST" });
+    if (!res.ok) throw new Error(`Emergency endpoint returned ${res.status}`);
+  } catch (err) {
+    console.error("Emergency history sync failed:", err);
+  }
+}
+
 // ── HISTORY ───────────────────────────────────────────
-function addToHistory(phrase, icon) {
+function addToHistory(phrase, icon, emergency = false) {
   if (!phrase||phrase.startsWith("Select")||phrase.startsWith("Please select")) return;
   const time = new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
-  sessionHistory.unshift({phrase, icon:icon||"💬", time});
+  sessionHistory.unshift({phrase, icon:icon||"💬", time, emergency});
   renderHistory();
   updateCarerPanel(phrase);
   updateClinicalPanel();
@@ -282,7 +297,7 @@ function renderHistory() {
   const list = document.getElementById("historyList");
   if (!sessionHistory.length) { list.innerHTML='<div class="history-empty">No phrases yet this session.</div>'; return; }
   list.innerHTML = sessionHistory.map(i=>
-    `<div class="history-item">
+    `<div class="history-item${i.emergency ? " history-item-emergency" : ""}">
       <span class="hi-icon">${i.icon}</span>
       <span class="hi-text">${i.phrase}</span>
       <span class="hi-time">${i.time}</span>
@@ -297,7 +312,7 @@ function clearHistory() {
 
 function exportHistory() {
   if (!sessionHistory.length) { alert("No history to export."); return; }
-  const csv = "Phrase,Time\n"+sessionHistory.map(i=>`"${i.phrase}","${i.time}"`).join("\n");
+  const csv = "Phrase,Time,Emergency\n"+sessionHistory.map(i=>`"${i.phrase}","${i.time}","${i.emergency ? "true" : "false"}"`).join("\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
   a.download = `silentvoice-${new Date().toISOString().slice(0,10)}.csv`;

@@ -14,7 +14,7 @@
   let selectedThisCard = false;
 
   function cards() {
-    return Array.from(document.querySelectorAll(".comm-card"));
+    return Array.from(document.querySelectorAll(".comm-card, .emergency-btn"));
   }
 
   function paint(progress) {
@@ -86,10 +86,10 @@
 
   const style = document.createElement("style");
   style.textContent =
-    ".comm-card.sv-focus { position: relative; outline: 5px solid #38bdf8 !important; " +
+    ".comm-card.sv-focus, .emergency-btn.sv-focus { position: relative; outline: 5px solid #38bdf8 !important; " +
     "outline-offset: 2px; box-shadow: 0 0 26px rgba(56,189,248,0.95) !important; " +
     "transform: scale(1.05); transition: outline 0.15s ease; } " +
-    ".comm-card.sv-focus::after { content: ''; position: absolute; left: 0; bottom: 0; " +
+    ".comm-card.sv-focus::after, .emergency-btn.sv-focus::after { content: ''; position: absolute; left: 0; bottom: 0; " +
     "height: 7px; width: var(--sv-fill, 0%); background: #22c55e; " +
     "border-bottom-left-radius: 10px; transition: width 0.1s linear; }";
   document.head.appendChild(style);

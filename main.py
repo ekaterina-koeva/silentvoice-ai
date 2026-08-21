@@ -16,6 +16,7 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 communication_history = []
+EMERGENCY_PHRASE = "Emergency: please come immediately"
 
 
 class PhraseRequest(BaseModel):
@@ -66,6 +67,12 @@ def speak(request: SpeakRequest):
     }
 
 
+@app.post("/emergency")
+def emergency():
+    _save_to_history(EMERGENCY_PHRASE, "emergency", emergency=True)
+    return {"phrase": EMERGENCY_PHRASE, "emergency": True}
+
+
 @app.get("/history")
 def get_history():
     return {"history": communication_history}
@@ -77,11 +84,12 @@ def clear_history():
     return {"cleared": True}
 
 
-def _save_to_history(phrase: str, profile: str):
+def _save_to_history(phrase: str, profile: str, emergency: bool = False):
     communication_history.append({
         "phrase": phrase,
         "profile": profile,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
+        "emergency": emergency
     })
     if len(communication_history) > 50:
         communication_history.pop(0)

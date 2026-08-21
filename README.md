@@ -43,6 +43,7 @@ It is a communication support tool.
 - AI-assisted sentence generation using soft, non-alarming language
 - Browser-based text-to-speech, with automatic language detection (Bulgarian / English)
 - Carer Mode with communication history
+- Emergency communication button with spoken alert and emergency history flag
 - Accessibility profiles (General, Autism, Cerebral Palsy, Stroke, Voice Loss)
 
 Selection was originally blink-based. It was replaced with dwell-based selection because
