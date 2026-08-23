@@ -223,7 +223,7 @@ function setPhrase(phrase) {
   document.getElementById("phraseCursor").style.display = "block";
   const kws = phrase.toLowerCase().split(/\s+/).filter(w=>w.length>2);
   document.getElementById("kwLabel").style.display = kws.length?"block":"none";
-  document.getElementById("keywordsDisplay").innerHTML = kws.map(k=>`<span class="keyword-tag">${k}</span>`).join("");
+  document.getElementById("keywordsDisplay").innerHTML = kws.map(k=>`<span class="keyword-tag">${escapeHtml(k)}</span>`).join("");
 }
 
 function clearSelection() {
@@ -283,6 +283,27 @@ async function triggerEmergency() {
 }
 
 // ── HISTORY ───────────────────────────────────────────
+// Phrases can come from the language model, so they are never trusted as markup.
+// Anything placed into innerHTML is escaped first.
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// A spreadsheet treats a leading =, +, - or @ as a formula, and model generated
+// text is written into the export. Those cells are prefixed with an apostrophe,
+// and any double quote inside a value is doubled as CSV requires.
+function csvCell(value) {
+  let text = String(value);
+  if (text.length && "=+-@".indexOf(text.charAt(0)) !== -1) text = "'" + text;
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+
+
 function addToHistory(phrase, icon, emergency = false) {
   if (!phrase||phrase.startsWith("Select")||phrase.startsWith("Please select")) return;
   const time = new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
@@ -297,8 +318,8 @@ function renderHistory() {
   if (!sessionHistory.length) { list.innerHTML='<div class="history-empty">No phrases yet this session.</div>'; return; }
   list.innerHTML = sessionHistory.map(i=>
     `<div class="history-item${i.emergency ? " history-item-emergency" : ""}">
-      <span class="hi-icon">${i.icon}</span>
-      <span class="hi-text">${i.phrase}</span>
+      <span class="hi-icon">${escapeHtml(i.icon)}</span>
+      <span class="hi-text">${escapeHtml(i.phrase)}</span>
       <span class="hi-time">${i.time}</span>
     </div>`
   ).join("");
@@ -310,7 +331,7 @@ function clearHistory() {
 
 function exportHistory() {
   if (!sessionHistory.length) { alert("No history to export."); return; }
-  const csv = "Phrase,Time,Emergency\n"+sessionHistory.map(i=>`"${i.phrase}","${i.time}","${i.emergency ? "true" : "false"}"`).join("\n");
+  const csv = "Phrase,Time,Emergency\n"+sessionHistory.map(i=>[csvCell(i.phrase),csvCell(i.time),csvCell(i.emergency ? "true" : "false")].join(",")).join("\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
   a.download = `silentvoice-${new Date().toISOString().slice(0,10)}.csv`;
