@@ -338,6 +338,85 @@ function exportHistory() {
   a.click();
 }
 
+// Session report for a carer or a family member. CSV is a data file and cannot
+// carry headings, explanation or a disclaimer without those lines becoming rows
+// in the spreadsheet. The report is therefore a self contained HTML document
+// that opens in any browser and prints to PDF. It is built in the browser and
+// nothing is sent to a server.
+function exportReport() {
+  if (!sessionHistory.length) { alert("There is nothing to report yet. Select a card first."); return; }
+
+  const now = new Date();
+  const sel = document.getElementById("profileSelect");
+  const profileLabel = sel && sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex].text : "General";
+  const entries = sessionHistory.slice().reverse();
+  const helpRequests = entries.filter(e => e.emergency).length;
+  const startedAt = sessionStart
+    ? sessionStart.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+    : entries[0].time;
+
+  const counts = {};
+  entries.forEach(e => { counts[e.phrase] = (counts[e.phrase] || 0) + 1; });
+  const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const mostUsed = ranked.length ? ranked[0][0] + " (" + ranked[0][1] + ")" : "None";
+
+  const rows = entries.map((e, n) =>
+    "<tr><td class='n'>" + (n + 1) + "</td><td>" + escapeHtml(e.time) + "</td><td>" +
+    escapeHtml(e.phrase) + "</td><td>" +
+    (e.emergency ? "Request for assistance" : "Communication card") + "</td></tr>"
+  ).join("");
+
+  const style =
+    "body{font-family:Segoe UI,Helvetica,Arial,sans-serif;color:#1a1a1a;max-width:820px;margin:40px auto;padding:0 24px;line-height:1.55}" +
+    "h1{font-size:24px;margin:0 0 4px}h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:#555;margin:32px 0 10px;border-bottom:1px solid #ddd;padding-bottom:6px}" +
+    ".sub{color:#666;margin:0 0 28px}" +
+    "table{border-collapse:collapse;width:100%;font-size:14px}" +
+    "th{text-align:left;background:#f2f4f7;padding:9px 10px;border:1px solid #dde1e6;font-weight:600}" +
+    "td{padding:9px 10px;border:1px solid #dde1e6;vertical-align:top}" +
+    ".n{width:38px;color:#888}" +
+    ".meta td:first-child{width:220px;color:#555}" +
+    ".note{background:#f7f9fb;border-left:3px solid #9aa7b4;padding:14px 16px;font-size:13px;color:#333;margin-top:12px}" +
+    "footer{margin-top:36px;padding-top:14px;border-top:1px solid #ddd;font-size:12px;color:#777}" +
+    "@media print{body{margin:0;max-width:none}h2{page-break-after:avoid}tr{page-break-inside:avoid}}";
+
+  const html =
+    "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>" +
+    "<title>SilentVoice AI session report</title><style>" + style + "</style></head><body>" +
+    "<h1>SilentVoice AI session report</h1>" +
+    "<p class='sub'>Generated " + escapeHtml(now.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })) +
+    " at " + escapeHtml(now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })) + "</p>" +
+
+    "<h2>Session details</h2><table class='meta'>" +
+    "<tr><td>Communication profile</td><td>" + escapeHtml(profileLabel) + "</td></tr>" +
+    "<tr><td>First entry</td><td>" + escapeHtml(startedAt) + "</td></tr>" +
+    "<tr><td>Entries recorded</td><td>" + entries.length + "</td></tr>" +
+    "<tr><td>Requests for assistance</td><td>" + helpRequests + "</td></tr>" +
+    "<tr><td>Most selected phrase</td><td>" + escapeHtml(mostUsed) + "</td></tr>" +
+    "</table>" +
+
+    "<h2>What this report contains</h2>" +
+    "<p>Each row is a phrase the person selected during this session, in the order it was selected, with the time it was spoken. Rows marked as a request for assistance came from the emergency button.</p>" +
+
+    "<h2>Session entries</h2><table>" +
+    "<tr><th class='n'>#</th><th>Time</th><th>Phrase</th><th>Type</th></tr>" + rows + "</table>" +
+
+    "<h2>Important</h2><div class='note'>" +
+    "<p>SilentVoice AI is a communication support tool. It does not diagnose, monitor or treat any medical condition, and it does not infer emotion, pain or cognitive state.</p>" +
+    "<p>This report lists the phrases chosen from a fixed set of cards during a single session on a single device. It records what was selected, not why. It is not a clinical record and it is not evidence of a person's condition or needs.</p>" +
+    "<p>A phrase may be selected in error. Selection by gaze is not yet reliable and is not calibrated per person, so entries should be read alongside what the person and those present actually understood at the time.</p>" +
+    "<p>Please raise anything in this report with the person themselves, and with a qualified speech and language therapist or clinician where a health question is involved.</p>" +
+    "</div>" +
+
+    "<footer>Generated locally in the browser. No session data was sent to a server to produce this report. SilentVoice AI, open source, MIT licence.</footer>" +
+    "</body></html>";
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  link.download = "silentvoice-session-report-" + now.toISOString().slice(0, 10) + ".html";
+  link.click();
+}
+
+
 // ── CARER MODE ────────────────────────────────────────
 function toggleCarer() {
   carerMode = document.getElementById("carerToggle").checked;
