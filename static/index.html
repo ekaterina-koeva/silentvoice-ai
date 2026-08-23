@@ -22,7 +22,7 @@
 
   <nav class="mode-switcher">
     <button class="mode-btn active" onclick="setMode('home',this)">🏠 Home Mode</button>
-    <button class="mode-btn" onclick="setMode('clinical',this)">🩺 Clinical Mode</button>
+    <button class="mode-btn" onclick="setMode('clinical',this)">🗂️ Session Mode</button>
     <button class="mode-btn" onclick="setMode('family',this)">👨‍👩‍👧 Family Mode</button>
   </nav>
 
@@ -46,12 +46,12 @@
     <span class="sugg-icon">✦</span>
     <div>
       <div class="sugg-title">Smart Suggestions</div>
-      <div class="sugg-sub">Based on time &amp; history</div>
+      <div class="sugg-sub">Based on time of day</div>
     </div>
   </div>
   <div class="suggestions-chips" id="suggestionsChips"></div>
   <div class="suggestions-hint">
-    👁 <strong style="color:#e2e8f0">Blink to select</strong><br>Look at a phrase and blink
+    👁 <strong style="color:#e2e8f0">Hold gaze to select</strong><br>Cards highlight in turn. Hold your gaze to the right.
   </div>
 </div>
 
@@ -90,28 +90,11 @@
         </div>
 
         <div class="signal-card blink-card">
-          <div class="sig-icon">😑</div>
+          <div class="sig-icon">⏱️</div>
           <div class="sig-info">
-            <span class="sig-label">Blink</span>
-            <span class="sig-sub">Status</span>
+            <span class="sig-label">Gaze Hold</span>
+            <span class="sig-sub">Hold progress</span>
             <strong id="blinkStatus" class="sig-val cyan">READY</strong>
-          </div>
-          <div class="waveform">
-            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-          </div>
-        </div>
-
-        <div class="signal-card head-card">
-          <div class="sig-icon">🙂</div>
-          <div class="sig-info">
-            <span class="sig-label">Head Movement</span>
-            <span class="sig-sub">Position</span>
-            <strong id="headStatus" class="sig-val">CENTER</strong>
-          </div>
-          <div class="head-arrows">
-            <button class="arr">←</button>
-            <button class="arr">↑</button>
-            <button class="arr">→</button>
           </div>
         </div>
 
@@ -131,7 +114,7 @@
         <option value="voice_loss">Voice Loss Recovery</option>
       </select>
       <div class="profile-list" id="profileList"></div>
-      <p class="helper-text">Profiles adapt vocabulary and language to individual needs. <a href="#" class="link-cyan">Learn more →</a></p>
+      <p class="helper-text">Choose a preset profile to load a different set of communication cards.</p>
     </div>
 
     <button class="my-phrases-btn">
@@ -155,7 +138,7 @@
         <div class="panel-title">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
           Communication Cards
-          <span class="panel-title-sub">Look at a card and blink to select</span>
+          <span class="panel-title-sub">Cards highlight in turn. Hold your gaze to the right to select.</span>
         </div>
         <button class="edit-cards-btn" onclick="alert('Edit Cards coming soon')">✏️ Edit Cards</button>
       </div>
@@ -240,20 +223,20 @@
       </div>
       <div class="history-actions">
         <button class="btn-export" onclick="exportHistory()">
-          📄 Export<br><span class="btn-export-sub">PDF / CSV</span>
+          📄 Export<br><span class="btn-export-sub">CSV</span>
         </button>
         <button class="btn-clr-hist" onclick="clearHistory()">🗑 Clear History</button>
       </div>
     </div>
 
-    <!-- Clinical panel — appears in Clinical Mode -->
+    <!-- Session panel, appears in Session Mode -->
     <div class="panel clinical-panel" id="clinicalPanel">
-      <div class="panel-title" style="margin-bottom:10px;">🏥 Clinical Summary</div>
-      <div class="clinical-row"><span>Patient profile</span><strong id="clinProfile">General</strong></div>
+      <div class="panel-title" style="margin-bottom:10px;">🗂️ Session Summary</div>
+      <div class="clinical-row"><span>Communication profile</span><strong id="clinProfile">General</strong></div>
       <div class="clinical-row"><span>Session started</span><strong id="clinStart">—</strong></div>
       <div class="clinical-row"><span>Total phrases</span><strong id="clinTotal">0</strong></div>
       <div class="clinical-row"><span>Most used phrase</span><strong id="clinTop">—</strong></div>
-      <button class="btn-clinical-export" onclick="exportHistory()">📄 Export Clinical Report</button>
+      <button class="btn-clinical-export" onclick="exportHistory()">📄 Export Session Report</button>
     </div>
 
     <!-- Ethics -->
@@ -274,7 +257,7 @@
 <footer class="app-footer">
   <div class="footer-left">
     <span class="footer-lock">🔒</span>
-    Your privacy is protected. All processing happens locally.
+    Camera video and gaze tracking stay in your browser. The server is contacted only for AI phrase generation, emergency alerts, history actions, and speech on browsers without built in speech.
   </div>
   <span>v0.1.0 &nbsp;|&nbsp; SilentVoice AI by Ekaterina Koeva</span>
 </footer>

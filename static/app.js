@@ -149,7 +149,6 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCards();
   startCamera();
   loadSuggestions();
-  startWaveform();
 });
 
 // ── CAMERA ────────────────────────────────────────────
@@ -372,11 +371,3 @@ function setMode(mode, btn) {
   if(layout) layout.classList.toggle("family-mode",mode==="family");
 }
 
-// ── WAVEFORM ──────────────────────────────────────────
-function startWaveform() {
-  setInterval(()=>{
-    document.querySelectorAll(".waveform span").forEach(s=>{
-      s.style.height=(Math.random()*18+3)+"px";
-    });
-  },120);
-}
