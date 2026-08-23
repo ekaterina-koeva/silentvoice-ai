@@ -1,10 +1,14 @@
 // SilentVoice AI - Auto-scanning navigation with deliberate gaze selection
 //
-// Cards highlight one at a time. Selection requires a deliberate RIGHT gaze
-// held for DWELL_MS. Looking at the screen normally (CENTER) never selects
-// anything, so a user reading the screen cannot trigger a card by accident.
+// Cards highlight one at a time. Selection requires a deliberate gaze towards
+// the left edge of the screen, held for DWELL_MS. Looking at the screen
+// normally (CENTER) never selects anything, so a user reading the screen cannot
+// trigger a card by accident.
 //
-// LEFT cancels the current selection attempt and moves to the next card.
+// Only one direction is used. Measurement on 23 August 2026 showed that a
+// rightward gaze could not be separated from a centred one on the test camera,
+// so it is not treated as a signal. See the note in tracking.js.
+//
 // UP restarts scanning from the first card.
 //
 // The emergency button is deliberately excluded from gaze scanning. An
@@ -12,7 +16,7 @@
 
 (function () {
   const SCAN_INTERVAL = 3500; // ms each card stays highlighted
-  const DWELL_MS = 2000;      // held RIGHT gaze needed to confirm selection
+  const DWELL_MS = 2000;      // held leftward gaze needed to confirm
 
   let scanIndex = -1;
   let scanning = false;
@@ -100,21 +104,10 @@
         return;
       }
 
-      // LEFT cancels this card and moves on, giving the user a way out.
-      if (g === "LEFT" && lastGaze !== "LEFT") {
-        selectedThisCard = true;
-        resetHold();
-        paint(0);
-        step();
-        lastGaze = g;
-        requestAnimationFrame(tick);
-        return;
-      }
-
       lastGaze = g;
 
-      // Selection requires a deliberate, held RIGHT gaze.
-      if (g === "RIGHT" && scanIndex >= 0 && !selectedThisCard) {
+      // Selection requires a deliberate, held gaze to the left edge.
+      if (g === "LEFT" && scanIndex >= 0 && !selectedThisCard) {
         const pct = (t.holdMs / DWELL_MS) * 100;
         paint(pct);
         if (t.holdMs >= DWELL_MS) {
@@ -123,7 +116,7 @@
           resetHold();
           selectCurrent();
         }
-      } else if (g !== "RIGHT") {
+      } else if (g !== "LEFT") {
         paint(0);
       }
     }

@@ -12,8 +12,15 @@
   const LEFT_OUTER = 33, LEFT_INNER = 133;
   const RIGHT_INNER = 362, RIGHT_OUTER = 263;
 
-  // Ratio of iris position across the eye opening. 0.5 is centred.
-  const LEFT_T = 0.54, RIGHT_T = 0.46;
+  // Ratio of iris position across the eye opening.
+  //
+  // Measured on 23 August 2026 with one user and one camera: centre 0.42 to 0.46,
+  // gaze to the left edge 0.41 to 0.55, gaze to the right edge 0.41 to 0.43. A
+  // rightward gaze is not separable from centre on this hardware, so it is not
+  // used as a selection signal. This threshold is specific to that user, camera
+  // and lighting. Per user calibration is required before it can be trusted more
+  // widely.
+  const LEFT_T = 0.49;
 
   // Vertical gaze still uses frame position, which is acceptable for a
   // deliberate look-up gesture.
@@ -77,12 +84,11 @@
     let dir = "CENTER";
     if (ay < UP_T) dir = "UP";
     else if (ax > LEFT_T) dir = "LEFT";
-    else if (ax < RIGHT_T) dir = "RIGHT";
 
     if (dir === cand) candN++; else { cand = dir; candN = 1; }
     if (candN >= DEBOUNCE) last = cand;
     window.SVTracking.gaze = last;
-    if (badgeG) badgeG.textContent = "\u{1F441}\uFE0F Gaze: " + last;
+    if (badgeG) badgeG.textContent = last;
 
     // How long the current direction has been held without changing.
     const now = performance.now();
@@ -95,7 +101,7 @@
 
     if (badgeB) {
       const s = (window.SVTracking.holdMs / 1000).toFixed(1);
-      badgeB.textContent = "\u{1F441}\uFE0F Hold " + last + ": " + s + "s";
+      badgeB.textContent = last + ": " + s + "s";
     }
   }
 
