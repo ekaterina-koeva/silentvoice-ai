@@ -4,7 +4,6 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from datetime import datetime
 
 from cards.phrases import COMMUNICATION_CARDS, PROFILE_NAMES
 from ai.phrase_gen import generate_phrase
@@ -17,7 +16,15 @@ app = FastAPI(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-communication_history = []
+# Session history is held in the browser and is not sent to the server.
+#
+# A single module level list was previously shared by every visitor to the
+# deployment, and GET /history returned it to anyone who asked. On a public
+# deployment that exposed one persons communication to every other visitor.
+# The interface never read it back, so removing it cost nothing.
+#
+# Any future server side history needs authentication, separation per user and
+# a real data store before it can be reintroduced.
 EMERGENCY_PHRASE = "Emergency: please come immediately"
 
 # Limits on the AI phrase generation endpoint. This route spends the Anthropic
@@ -99,13 +106,11 @@ def generate(request: PhraseRequest, http_request: Request):
     _validate_keywords(request.keywords)
     _check_rate_limit(http_request.client.host if http_request.client else "unknown")
     phrase = generate_phrase(request.keywords)
-    _save_to_history(phrase, request.profile)
     return {"phrase": phrase, "profile": request.profile}
 
 
 @app.post("/speak")
 def speak(request: SpeakRequest):
-    _save_to_history(request.phrase, "speech")
     return {
         "spoken": True,
         "phrase": request.phrase,
@@ -116,27 +121,4 @@ def speak(request: SpeakRequest):
 
 @app.post("/emergency")
 def emergency():
-    _save_to_history(EMERGENCY_PHRASE, "emergency", emergency=True)
     return {"phrase": EMERGENCY_PHRASE, "emergency": True}
-
-
-@app.get("/history")
-def get_history():
-    return {"history": communication_history}
-
-
-@app.delete("/history")
-def clear_history():
-    communication_history.clear()
-    return {"cleared": True}
-
-
-def _save_to_history(phrase: str, profile: str, emergency: bool = False):
-    communication_history.append({
-        "phrase": phrase,
-        "profile": profile,
-        "timestamp": datetime.now().isoformat(),
-        "emergency": emergency
-    })
-    if len(communication_history) > 50:
-        communication_history.pop(0)

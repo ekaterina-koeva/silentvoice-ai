@@ -57,34 +57,18 @@ def test_emergency_phrase_makes_no_medical_claim():
         assert term not in phrase, f"Emergency phrase must not contain '{term}'"
 
 
-def test_emergency_is_recorded_with_the_emergency_flag():
-    client.delete("/history")
-    client.post("/emergency")
+def test_repeated_emergency_requests_all_succeed():
+    for _ in range(3):
+        response = client.post("/emergency")
 
-    history = client.get("/history").json()["history"]
-
-    assert len(history) == 1
-    entry = history[0]
-    assert entry["emergency"] is True
-    assert entry["phrase"] == EMERGENCY_PHRASE
-    assert entry["profile"] == "emergency"
-    assert entry["timestamp"]
+        assert response.status_code == 200
+        assert response.json()["emergency"] is True
 
 
-def test_repeated_emergencies_are_each_recorded():
-    client.delete("/history")
-    client.post("/emergency")
-    client.post("/emergency")
-    client.post("/emergency")
+def test_no_server_side_history_is_exposed():
+    """Session history belongs to the browser.
 
-    history = client.get("/history").json()["history"]
-
-    assert len(history) == 3
-    assert all(entry["emergency"] is True for entry in history)
-
-
-def test_clearing_history_removes_emergency_entries():
-    client.post("/emergency")
-    client.delete("/history")
-
-    assert client.get("/history").json()["history"] == []
+    A shared server side list returned one persons communication to every
+    other visitor on a public deployment, and the interface never read it.
+    """
+    assert client.get("/history").status_code == 404

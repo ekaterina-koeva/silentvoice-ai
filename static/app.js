@@ -306,7 +306,6 @@ function renderHistory() {
 
 function clearHistory() {
   sessionHistory = []; renderHistory();
-  fetch("/history",{method:"DELETE"}).catch(()=>{});
 }
 
 function exportHistory() {
