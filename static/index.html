@@ -51,7 +51,7 @@
   </div>
   <div class="suggestions-chips" id="suggestionsChips"></div>
   <div class="suggestions-hint">
-    👁 <strong style="color:#e2e8f0">Selecting a card</strong><br>Cards highlight in turn. Select by touch or pointer. Gaze selection needs calibration.
+    👁 <strong style="color:#e2e8f0">Selecting a card</strong><br><span id="svTopHint">Cards highlight in turn. Select by touch or pointer. Gaze selection needs calibration.</span>
   </div>
 </div>
 
@@ -138,7 +138,7 @@
         <div class="panel-title">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
           Communication Cards
-          <span class="panel-title-sub">Cards highlight in turn. Select by touch or pointer. Gaze selection needs calibration.</span>
+          <span class="panel-title-sub" id="svCardsHint">Cards highlight in turn. Select by touch or pointer. Gaze selection needs calibration.</span>
         </div>
         <button class="edit-cards-btn" onclick="alert('Edit Cards coming soon')">✏️ Edit Cards</button>
       </div>
@@ -269,5 +269,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="/static/tracking.js"></script>
 <script src="/static/navigation.js"></script>
+  <script src="/static/calibrate.js"></script>
 </body>
 </html>

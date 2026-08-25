@@ -113,3 +113,10 @@ body:has(.mode-btn:nth-child(2).active) .comm-card{filter:saturate(.82)}
 .signal-card{height:auto;min-height:72px}
 .sig-info{min-width:0}
 .sig-val{white-space:normal;overflow-wrap:anywhere;line-height:1.15;font-size:.98rem}
+
+/* 25 August 2026, second pass. The status value is one line or two, and a card
+   that changes height moves every panel below it while a person is trying to
+   press a button there. The height is fixed for both cases, and the digits use
+   a fixed width so the seconds do not shift the text as they count. */
+.signal-card{height:92px;min-height:92px}
+.sig-val{font-variant-numeric:tabular-nums}

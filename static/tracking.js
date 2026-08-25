@@ -43,13 +43,15 @@
 
   var PROFILE_KEY = "sv.gaze.profile.v1";
 
-  var xs = [], last = "UNCALIBRATED", cand = "UNCALIBRATED", candN = 0;
+  var xs = [], ys = [], ss = [];
+  var last = "UNCALIBRATED", cand = "UNCALIBRATED", candN = 0;
   var holdStart = 0;
 
   window.SVTracking = {
     gaze: "UNCALIBRATED",   // NONE, UNCALIBRATED, CENTER, LEFT, RIGHT, UNSURE
     axis: null,             // smoothed horizontal ratio, or null when no face
     yaw: null,              // head yaw proxy, for calibration quality checks
+    span: null,             // distance between the outer eye corners, a proxy for how far away the person is
     holdMs: 0,
     ready: false,
     faceVisible: false,
@@ -110,8 +112,15 @@
     return (c.x - lo) / (hi - lo);
   }
 
+  // How wide the face reads in the frame. Used only to notice that the person
+  // has moved closer or further away since the calibration, never as a gaze
+  // signal.
+  function headSpan(lm) {
+    return Math.abs(lm[263].x - lm[33].x);
+  }
+
   // Where the nose sits between the two outer eye corners. Used only as a head
-  // movement check during calibration, never as a gaze signal.
+  // movement check, never as a gaze signal.
   function headYaw(lm) {
     var l = lm[33], r = lm[263], nose = lm[1];
     var span = r.x - l.x;
@@ -139,7 +148,7 @@
       T.axis = null;
       T.yaw = null;
       T.resetHold();
-      xs = [];
+      xs = []; ys = []; ss = [];
       if (badgeG) badgeG.textContent = "NO FACE";
       if (badgeB) badgeB.textContent = "WAITING";
       return;
@@ -166,8 +175,15 @@
     if (xs.length > SMOOTH) xs.shift();
     ax = xs.reduce(function (p, q) { return p + q; }) / xs.length;
 
+    var yaw = headYaw(lm), span = headSpan(lm);
+    ys.push(yaw); ss.push(span);
+    if (ys.length > SMOOTH) { ys.shift(); ss.shift(); }
+    yaw = ys.reduce(function (p, q) { return p + q; }) / ys.length;
+    span = ss.reduce(function (p, q) { return p + q; }) / ss.length;
+
     T.axis = ax;
-    T.yaw = headYaw(lm);
+    T.yaw = yaw;
+    T.span = span;
 
     if (!T.calibrated) {
       last = cand = "UNCALIBRATED";
@@ -177,6 +193,25 @@
       if (badgeG) badgeG.textContent = "NOT CALIBRATED";
       if (badgeB) badgeB.textContent = "CALIBRATE FIRST";
       return;
+    }
+
+    // A profile is measured for one seat, one distance and one light. When the
+    // person is no longer sitting the way they were, the thresholds do not
+    // describe them any more. Saying so is better than deciding on numbers that
+    // no longer mean what they meant.
+    var pose = T.profile.pose;
+    if (pose) {
+      var dYaw = Math.abs(yaw - pose.yaw);
+      var dSpan = pose.span > 1e-6 ? Math.abs(span - pose.span) / pose.span : 0;
+      if (dYaw > pose.yawTol || dSpan > pose.spanTol) {
+        last = cand = "POSE";
+        candN = 0;
+        T.gaze = "POSE";
+        T.resetHold();
+        if (badgeG) badgeG.textContent = "POSITION CHANGED";
+        if (badgeB) badgeB.textContent = "CALIBRATE AGAIN";
+        return;
+      }
     }
 
     var dir = classify(ax, T.profile.bands);
