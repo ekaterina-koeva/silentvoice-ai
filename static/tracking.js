@@ -140,8 +140,8 @@
       T.yaw = null;
       T.resetHold();
       xs = [];
-      if (badgeG) badgeG.textContent = "\u{1F441}️ Gaze: no face";
-      if (badgeB) badgeB.textContent = "\u{1F441}️ Hold: —";
+      if (badgeG) badgeG.textContent = "NO FACE";
+      if (badgeB) badgeB.textContent = "WAITING";
       return;
     }
 
@@ -151,7 +151,8 @@
       T.gaze = "NONE";
       T.axis = null;
       T.resetHold();
-      if (badgeG) badgeG.textContent = "\u{1F441}️ Gaze: eyes not found";
+      if (badgeG) badgeG.textContent = "NO EYES";
+      if (badgeB) badgeB.textContent = "WAITING";
       return;
     }
 
@@ -173,8 +174,8 @@
       candN = 0;
       T.gaze = "UNCALIBRATED";
       T.resetHold();
-      if (badgeG) badgeG.textContent = "\u{1F441}️ Gaze: not calibrated";
-      if (badgeB) badgeB.textContent = "Calibration needed";
+      if (badgeG) badgeG.textContent = "NOT CALIBRATED";
+      if (badgeB) badgeB.textContent = "CALIBRATE FIRST";
       return;
     }
 

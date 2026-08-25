@@ -106,3 +106,10 @@ body:has(.mode-btn:nth-child(2).active) .comm-card{filter:saturate(.82)}
 .emergency-copy small{font-size:.76rem;color:rgba(255,255,255,.84);font-weight:600}
 .history-item-emergency{border-color:rgba(255,79,104,.72);background:linear-gradient(135deg,rgba(127,29,29,.52),rgba(69,10,10,.38));box-shadow:inset 4px 0 0 #ff4f68,0 0 18px rgba(255,79,104,.10)}
 .history-item-emergency .hi-text{color:#fff1f2}
+
+/* 25 August 2026. A status value can now be longer than one word, for example
+   NOT CALIBRATED. The card had a fixed height and the value had no wrapping
+   rule, so the text spilled out of the card and over the panel below it. */
+.signal-card{height:auto;min-height:72px}
+.sig-info{min-width:0}
+.sig-val{white-space:normal;overflow-wrap:anywhere;line-height:1.15;font-size:.98rem}
