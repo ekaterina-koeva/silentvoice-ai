@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SilentVoice gaze diagnostic</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; font-family: Inter, "Segoe UI", Arial, sans-serif; background:#06122a; color:#eaf3ff; }
+  header { padding:14px 20px; border-bottom:1px solid rgba(120,180,255,.2); }
+  h1 { font-size:1.05rem; margin:0 0 4px; }
+  p.sub { margin:0; color:#a8c2e6; font-size:.82rem; }
+  #stage { position:relative; height:52vh; min-height:320px; border-bottom:1px solid rgba(120,180,255,.2); }
+  .dot { position:absolute; width:74px; height:74px; border-radius:50%; border:3px solid #38bdf8;
+         background:rgba(56,189,248,.12); color:#eaf3ff; font-weight:800; font-size:.78rem;
+         display:flex; align-items:center; justify-content:center; cursor:pointer; text-align:center; }
+  .dot:hover { background:rgba(56,189,248,.3); }
+  .dot.busy { border-color:#22c55e; background:rgba(34,197,94,.35); }
+  #dLEFT   { left:14px;  top:50%; transform:translateY(-50%); }
+  #dRIGHT  { right:14px; top:50%; transform:translateY(-50%); }
+  #dCENTER { left:50%; top:50%; transform:translate(-50%,-50%); }
+  #dUP     { left:50%; top:14px; transform:translateX(-50%); }
+  #dDOWN   { left:50%; bottom:14px; transform:translateX(-50%); }
+  #live { position:absolute; left:50%; top:calc(50% + 62px); transform:translateX(-50%);
+          font-family:ui-monospace,Consolas,monospace; font-size:.82rem; color:#9ee7ff; white-space:pre; text-align:center; }
+  #err { position:absolute; left:50%; bottom:8px; transform:translateX(-50%); max-width:70%; text-align:center;
+         font-size:.78rem; color:#ff9db0; }
+  #video { position:absolute; right:14px; bottom:14px; width:150px; border-radius:8px; opacity:.65; }
+  main { padding:16px 20px 40px; }
+  table { border-collapse:collapse; width:100%; font-size:.8rem; font-family:ui-monospace,Consolas,monospace; }
+  th,td { border:1px solid rgba(120,180,255,.22); padding:5px 7px; text-align:right; }
+  th:first-child, td:first-child { text-align:left; }
+  th { background:rgba(56,189,248,.1); }
+  #verdict { margin:16px 0; padding:12px 14px; border-radius:10px; border:1px solid rgba(120,180,255,.3);
+             background:rgba(255,255,255,.04); font-size:.9rem; line-height:1.55; white-space:pre-wrap; }
+  button.act { margin-right:8px; height:38px; padding:0 16px; border-radius:8px; cursor:pointer;
+               border:1px solid rgba(56,189,248,.5); background:rgba(56,189,248,.12); color:#c5f8ff; font-weight:700; }
+  #out { width:100%; height:190px; margin-top:10px; background:#04101f; color:#cfe6ff; border:1px solid rgba(120,180,255,.25);
+         border-radius:8px; padding:10px; font-family:ui-monospace,Consolas,monospace; font-size:.76rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>SilentVoice gaze diagnostic</h1>
+  <p class="sub">Sit as you normally would. Keep your head still and move only your eyes. Click a circle, then look at that circle until it stops flashing. Do all five, in any order.</p>
+</header>
+
+<div id="stage">
+  <div class="dot" id="dLEFT"   data-t="LEFT">LEFT<br>edge</div>
+  <div class="dot" id="dRIGHT"  data-t="RIGHT">RIGHT<br>edge</div>
+  <div class="dot" id="dCENTER" data-t="CENTER">CENTRE</div>
+  <div class="dot" id="dUP"     data-t="UP">UP</div>
+  <div class="dot" id="dDOWN"   data-t="DOWN">DOWN</div>
+  <div id="live">starting</div>
+  <div id="err"></div>
+  <video id="video" autoplay playsinline muted></video>
+</div>
+
+<main>
+  <div id="verdict">No samples yet.</div>
+  <table id="tbl">
+    <thead>
+      <tr><th>target</th><th>n</th><th>leftEye</th><th>rightEye</th><th>avg now</th><th>avg fixed</th>
+          <th>fixed p10</th><th>fixed p90</th><th>vertical</th><th>head yaw</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <p style="margin:14px 0 6px">
+    <button class="act" id="copy">Copy the report</button>
+    <button class="act" id="clear">Clear and start a new run</button>
+  </p>
+  <textarea id="out" readonly></textarea>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js"
+        onerror="window.__mpFail = 'the MediaPipe script did not download'"></script>
+<script>
+(function () {
+  var MP_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/";
+
+  var LEFT_IRIS = 468, RIGHT_IRIS = 473;
+  var L_OUT = 33, L_IN = 133, R_IN = 362, R_OUT = 263;
+  var L_LID_UP = 159, L_LID_DN = 145;
+
+  var liveEl = document.getElementById("live");
+  var errEl = document.getElementById("err");
+  var video = document.getElementById("video");
+
+  var current = null, recording = null, results = {}, frames = 0;
+  var order = ["LEFT", "CENTER", "RIGHT", "UP", "DOWN"];
+
+  function say(t) { liveEl.textContent = t; }
+  function fail(t) { errEl.textContent = t; }
+
+  function med(a) { if (!a.length) return NaN; var b = a.slice().sort(function (x, y) { return x - y; }); return b[Math.floor(b.length / 2)]; }
+  function pctl(a, p) { if (!a.length) return NaN; var b = a.slice().sort(function (x, y) { return x - y; }); return b[Math.min(b.length - 1, Math.max(0, Math.round((b.length - 1) * p)))]; }
+  function f(x) { return (x === undefined || x === null || isNaN(x)) ? "  n/a" : x.toFixed(3); }
+
+  function metrics(lm) {
+    var lo = lm[L_OUT], li = lm[L_IN], ro = lm[R_OUT], ri = lm[R_IN];
+    var ci = lm[LEFT_IRIS], cr = lm[RIGHT_IRIS];
+
+    var spanL = li.x - lo.x, spanR = ri.x - ro.x;
+    var lrNow = Math.abs(spanL) < 1e-6 ? 0.5 : (ci.x - lo.x) / spanL;
+    var rrNow = Math.abs(spanR) < 1e-6 ? 0.5 : (cr.x - ro.x) / spanR;
+
+    var lLo = Math.min(lo.x, li.x), lHi = Math.max(lo.x, li.x);
+    var rLo = Math.min(ro.x, ri.x), rHi = Math.max(ro.x, ri.x);
+    var lFix = (lHi - lLo) < 1e-6 ? 0.5 : (ci.x - lLo) / (lHi - lLo);
+    var rFix = (rHi - rLo) < 1e-6 ? 0.5 : (cr.x - rLo) / (rHi - rLo);
+
+    var up = lm[L_LID_UP], dn = lm[L_LID_DN];
+    var vert = Math.abs(dn.y - up.y) < 1e-6 ? 0.5 : (ci.y - up.y) / (dn.y - up.y);
+
+    var nose = lm[1];
+    var yawSpan = ro.x - lo.x;
+    var yaw = Math.abs(yawSpan) < 1e-6 ? 0.5 : (nose.x - lo.x) / yawSpan;
+
+    return { lrNow: lrNow, rrNow: rrNow, avgNow: (lrNow + rrNow) / 2,
+             lFix: lFix, rFix: rFix, avgFix: (lFix + rFix) / 2,
+             vert: vert, yaw: yaw };
+  }
+
+  function onResults(res) {
+    frames++;
+    if (!res.multiFaceLandmarks || !res.multiFaceLandmarks.length) {
+      current = null;
+      say("model is running, no face in view");
+      return;
+    }
+    var lm = res.multiFaceLandmarks[0];
+    if (!lm[LEFT_IRIS] || !lm[RIGHT_IRIS]) {
+      say("face found, but the iris landmarks are missing");
+      return;
+    }
+    current = metrics(lm);
+    say("left eye " + f(current.lrNow) + "   right eye " + f(current.rrNow) + "\n" +
+        "avg now  " + f(current.avgNow) + "   avg fixed " + f(current.avgFix));
+    if (recording) recording.samples.push(current);
+  }
+
+  function record(target, el) {
+    if (recording) return;
+    if (!current) { fail("No face is being tracked yet, so there is nothing to record."); return; }
+    fail("");
+    recording = { target: target, samples: [] };
+    el.classList.add("busy");
+    setTimeout(function () {
+      el.classList.remove("busy");
+      var s = recording.samples; recording = null;
+      if (s.length < 10) { fail("Only " + s.length + " frames were captured. Make sure your face stays in view and try again."); return; }
+      results[target] = {
+        n: s.length,
+        lrNow: med(s.map(function (x) { return x.lrNow; })),
+        rrNow: med(s.map(function (x) { return x.rrNow; })),
+        avgNow: med(s.map(function (x) { return x.avgNow; })),
+        avgFix: med(s.map(function (x) { return x.avgFix; })),
+        fixLo: pctl(s.map(function (x) { return x.avgFix; }), 0.10),
+        fixHi: pctl(s.map(function (x) { return x.avgFix; }), 0.90),
+        vert: med(s.map(function (x) { return x.vert; })),
+        yaw: med(s.map(function (x) { return x.yaw; }))
+      };
+      render();
+    }, 2500);
+  }
+
+  function render() {
+    var body = document.querySelector("#tbl tbody");
+    body.innerHTML = "";
+    order.forEach(function (t) {
+      var r = results[t]; if (!r) return;
+      var tr = document.createElement("tr");
+      [t, r.n, f(r.lrNow), f(r.rrNow), f(r.avgNow), f(r.avgFix), f(r.fixLo), f(r.fixHi), f(r.vert), f(r.yaw)]
+        .forEach(function (v) { var td = document.createElement("td"); td.textContent = v; tr.appendChild(td); });
+      body.appendChild(tr);
+    });
+
+    var v = "";
+    var L = results.LEFT, R = results.RIGHT, C = results.CENTER;
+    if (L && R) {
+      var dL = L.lrNow - R.lrNow, dR = L.rrNow - R.rrNow;
+      var opposite = (dL * dR) < 0;
+      v += "Left eye moves by " + f(dL) + " between the LEFT and RIGHT targets.\n";
+      v += "Right eye moves by " + f(dR) + " over the same pair.\n";
+      v += opposite
+        ? "The two eyes move in OPPOSITE directions under the current formula, so averaging them cancels the signal. The averaging is the defect, not the threshold.\n"
+        : "The two eyes move in the SAME direction under the current formula, so averaging does not cancel the signal. The problem is elsewhere.\n";
+      v += "Separation with the current formula: " + f(Math.abs(L.avgNow - R.avgNow)) + "\n";
+      v += "Separation with the fixed formula:   " + f(Math.abs(L.avgFix - R.avgFix)) + "\n";
+      if (C) {
+        v += "Centre sits at " + f(C.avgFix) + " on the fixed formula, between " + f(Math.min(L.avgFix, R.avgFix)) +
+             " and " + f(Math.max(L.avgFix, R.avgFix)) + ".\n";
+      }
+      var yaws = order.filter(function (t) { return results[t]; }).map(function (t) { return results[t].yaw; });
+      v += "Head yaw across the run: " + f(Math.min.apply(null, yaws)) + " to " + f(Math.max.apply(null, yaws)) +
+           ". A wide spread here means the head moved and the run should be repeated.\n";
+    } else {
+      v = "Record at least the LEFT and the RIGHT target to get a verdict.";
+    }
+    document.getElementById("verdict").textContent = v;
+
+    var lines = ["target\tn\tleftEye\trightEye\tavgNow\tavgFix\tfixP10\tfixP90\tvertical\tyaw"];
+    order.forEach(function (t) {
+      var r = results[t]; if (!r) return;
+      lines.push([t, r.n, f(r.lrNow), f(r.rrNow), f(r.avgNow), f(r.avgFix), f(r.fixLo), f(r.fixHi), f(r.vert), f(r.yaw)].join("\t"));
+    });
+    lines.push("");
+    lines.push(v);
+    document.getElementById("out").value = lines.join("\n");
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(".dot"), function (el) {
+    el.addEventListener("click", function () { record(el.getAttribute("data-t"), el); });
+  });
+  document.getElementById("copy").addEventListener("click", function () {
+    var o = document.getElementById("out"); o.select(); document.execCommand("copy");
+  });
+  document.getElementById("clear").addEventListener("click", function () {
+    results = {}; render(); document.getElementById("out").value = "";
+  });
+
+  // ---- start up, one step at a time, saying what it is doing -------------
+  if (window.__mpFail) { say("stopped"); fail(window.__mpFail + ". Check the internet connection."); return; }
+  if (typeof FaceMesh === "undefined") { say("stopped"); fail("FaceMesh is not defined, so the MediaPipe script did not load."); return; }
+
+  say("asking for the camera");
+  navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } }).then(function (stream) {
+    video.srcObject = stream;
+    say("camera is on, downloading the tracking model, this can take a minute the first time");
+
+    var fm = new FaceMesh({ locateFile: function (x) { return MP_BASE + x; } });
+    fm.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+    fm.onResults(onResults);
+
+    var busy = false, reported = false;
+    setInterval(function () {
+      if (busy || video.readyState < 2) return;
+      busy = true;
+      fm.send({ image: video }).then(function () { busy = false; })
+        .catch(function (e) {
+          busy = false;
+          if (!reported) { reported = true; fail("The tracking model failed: " + (e && e.message ? e.message : e)); }
+        });
+    }, 66);
+
+    setTimeout(function () {
+      if (frames === 0 && !reported) {
+        fail("The model has produced no frames after 30 seconds. It is most likely still downloading, or the CDN is blocked.");
+      }
+    }, 30000);
+  }).catch(function (e) {
+    say("stopped");
+    fail("The camera was refused: " + (e && e.name ? e.name : e));
+  });
+})();
+</script>
+</body>
+</html>
