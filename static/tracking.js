@@ -1,116 +1,212 @@
 // SilentVoice AI - Browser-side MediaPipe tracking
-// Reads live video, computes gaze relative to the eye corners, and exposes
-// window.SVTracking with the current direction and how long it has been held.
 //
-// Iris position is measured against the inner and outer eye corners rather than
-// against the video frame, so moving the head no longer reads as moving the eyes.
+// Reads live video, computes a single horizontal gaze axis, classifies it
+// against a per user calibration profile, and exposes window.SVTracking with
+// the current direction and how long it has been held.
+//
+// WHY THIS FILE WAS REWRITTEN ON 25 AUGUST 2026
+//
+// The previous version measured each iris from the outer corner of its own eye
+// towards the inner corner, then averaged the two eyes. Those two directions
+// are mirror images of each other. When both eyes move to the same side, one
+// ratio rises and the other falls by almost the same amount, so the average
+// removed most of the horizontal signal and left convergence plus noise.
+//
+// Measured on 25 August 2026, one user, one webcam, 38 frames per target, head
+// still (yaw 0.502 to 0.518 across the three horizontal targets). Both formulas
+// were computed from the same frames.
+//
+//   old formula   right 0.449   centre 0.434   left 0.432   separation 0.017
+//   this formula  right 0.449   centre 0.510   left 0.577   separation 0.129
+//
+// Spread within a target, tenth to ninetieth percentile, was 0.006 to 0.010, so
+// the gap between neighbouring directions is now roughly eight times the noise.
+// Under the old formula it was inside the noise.
+//
+// This file no longer assumes which end of the axis is the left of the screen.
+// Calibration learns that, so a mirrored preview cannot invert the meaning.
+//
+// Without a calibration profile the tracker reports UNCALIBRATED and never
+// reports a selection direction. Thresholds measured on one person, one camera
+// and one room are not a product.
 
 (function () {
-  const LEFT_IRIS = 468, RIGHT_IRIS = 473;
+  var LEFT_IRIS = 468, RIGHT_IRIS = 473;
 
-  // Eye corner landmarks used to normalise iris position within each eye.
-  const LEFT_OUTER = 33, LEFT_INNER = 133;
-  const RIGHT_INNER = 362, RIGHT_OUTER = 263;
+  // Eye corner landmarks. The pair per eye is used by x order, not by
+  // anatomical name, so both eyes are measured along one shared direction.
+  var EYE_A = [33, 133];
+  var EYE_B = [362, 263];
 
-  // Ratio of iris position across the eye opening.
-  //
-  // Measured on 23 August 2026 with one user and one camera: centre 0.42 to 0.46,
-  // gaze to the left edge 0.41 to 0.55, gaze to the right edge 0.41 to 0.43. A
-  // rightward gaze is not separable from centre on this hardware, so it is not
-  // used as a selection signal. This threshold is specific to that user, camera
-  // and lighting. Per user calibration is required before it can be trusted more
-  // widely.
-  const LEFT_T = 0.49;
+  var SMOOTH = 5;      // frames averaged before a decision
+  var DEBOUNCE = 4;    // frames a direction must persist before it counts
 
-  // Vertical gaze still uses frame position, which is acceptable for a
-  // deliberate look-up gesture.
-  const UP_T = 0.30;
+  var PROFILE_KEY = "sv.gaze.profile.v1";
 
-  const SMOOTH = 5, DEBOUNCE = 4;
-
-  let xs = [], ys = [], last = "CENTER", cand = "CENTER", candN = 0;
-  let holdStart = 0;
+  var xs = [], last = "UNCALIBRATED", cand = "UNCALIBRATED", candN = 0;
+  var holdStart = 0;
 
   window.SVTracking = {
-    gaze: "CENTER",
+    gaze: "UNCALIBRATED",   // NONE, UNCALIBRATED, CENTER, LEFT, RIGHT, UNSURE
+    axis: null,             // smoothed horizontal ratio, or null when no face
+    yaw: null,              // head yaw proxy, for calibration quality checks
     holdMs: 0,
     ready: false,
     faceVisible: false,
+    profile: null,
+    calibrated: false,
+    selectDirection: null,  // which direction this user selects with
 
     // Clears the hold timer. Navigation calls this after a selection so the
     // next card cannot inherit an already full timer.
     resetHold: function () {
       holdStart = 0;
       window.SVTracking.holdMs = 0;
+    },
+
+    // Calibration writes here. Passing null turns gaze selection off again.
+    setProfile: function (p) {
+      window.SVTracking.profile = p;
+      window.SVTracking.calibrated = !!(p && p.bands);
+      window.SVTracking.selectDirection = p ? p.selectDirection : null;
+      if (!window.SVTracking.calibrated) {
+        last = cand = "UNCALIBRATED";
+        window.SVTracking.gaze = "UNCALIBRATED";
+      }
+      window.SVTracking.resetHold();
+    },
+
+    loadProfile: function () {
+      var raw = null;
+      try { raw = window.localStorage.getItem(PROFILE_KEY); } catch (e) { raw = null; }
+      if (!raw) return null;
+      var p = null;
+      try { p = JSON.parse(raw); } catch (e) { return null; }
+      if (!p || p.version !== 1 || !p.bands) return null;
+      window.SVTracking.setProfile(p);
+      return p;
+    },
+
+    saveProfile: function (p) {
+      try { window.localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+      catch (e) { return false; }
+      window.SVTracking.setProfile(p);
+      return true;
+    },
+
+    clearProfile: function () {
+      try { window.localStorage.removeItem(PROFILE_KEY); } catch (e) {}
+      window.SVTracking.setProfile(null);
     }
   };
 
-  function eyeRatio(lm, iris, outer, inner) {
-    const o = lm[outer], i = lm[inner], c = lm[iris];
-    const span = i.x - o.x;
+  // One eye, measured left to right in the image. Both eyes therefore move the
+  // same way when the gaze moves, and averaging them adds signal instead of
+  // cancelling it.
+  function eyeAxis(lm, iris, corners) {
+    var a = lm[corners[0]], b = lm[corners[1]], c = lm[iris];
+    var lo = Math.min(a.x, b.x), hi = Math.max(a.x, b.x);
+    if ((hi - lo) < 1e-6) return 0.5;
+    return (c.x - lo) / (hi - lo);
+  }
+
+  // Where the nose sits between the two outer eye corners. Used only as a head
+  // movement check during calibration, never as a gaze signal.
+  function headYaw(lm) {
+    var l = lm[33], r = lm[263], nose = lm[1];
+    var span = r.x - l.x;
     if (Math.abs(span) < 1e-6) return 0.5;
-    return (c.x - o.x) / span;
+    return (nose.x - l.x) / span;
+  }
+
+  // Classifies a value against the calibrated bands. Anything that falls in a
+  // boundary zone returns UNSURE, and UNSURE never selects anything.
+  function classify(v, bands) {
+    if (v >= bands.hiEnter) return bands.hiName;
+    if (v <= bands.loEnter) return bands.loName;
+    if (v > bands.midLo && v < bands.midHi) return "CENTER";
+    return "UNSURE";
   }
 
   function onResults(res) {
-    const badgeG = document.getElementById("gazeStatus");
-    const badgeB = document.getElementById("blinkStatus");
+    var badgeG = document.getElementById("gazeStatus");
+    var badgeB = document.getElementById("blinkStatus");
+    var T = window.SVTracking;
 
     if (!res.multiFaceLandmarks || !res.multiFaceLandmarks.length) {
-      window.SVTracking.faceVisible = false;
-      window.SVTracking.gaze = "NONE";
-      window.SVTracking.resetHold();
-      if (badgeG) badgeG.textContent = "\u{1F441}\uFE0F Gaze: no face";
-      if (badgeB) badgeB.textContent = "\u{1F441}\uFE0F Hold: \u2014";
+      T.faceVisible = false;
+      T.gaze = "NONE";
+      T.axis = null;
+      T.yaw = null;
+      T.resetHold();
+      xs = [];
+      if (badgeG) badgeG.textContent = "\u{1F441}️ Gaze: no face";
+      if (badgeB) badgeB.textContent = "\u{1F441}️ Hold: —";
       return;
     }
 
-    const lm = res.multiFaceLandmarks[0];
-    window.SVTracking.faceVisible = true;
+    var lm = res.multiFaceLandmarks[0];
+    if (!lm[LEFT_IRIS] || !lm[RIGHT_IRIS]) {
+      T.faceVisible = true;
+      T.gaze = "NONE";
+      T.axis = null;
+      T.resetHold();
+      if (badgeG) badgeG.textContent = "\u{1F441}️ Gaze: eyes not found";
+      return;
+    }
 
-    // Horizontal: iris position within each eye, averaged across both eyes.
-    const lr = eyeRatio(lm, LEFT_IRIS, LEFT_OUTER, LEFT_INNER);
-    const rr = eyeRatio(lm, RIGHT_IRIS, RIGHT_OUTER, RIGHT_INNER);
-    let ax = (lr + rr) / 2;
+    T.faceVisible = true;
 
-    // Vertical: frame position of the iris centres.
-    let ay = (lm[LEFT_IRIS].y + lm[RIGHT_IRIS].y) / 2;
+    var a = eyeAxis(lm, LEFT_IRIS, EYE_A);
+    var b = eyeAxis(lm, RIGHT_IRIS, EYE_B);
+    var ax = (a + b) / 2;
 
-    xs.push(ax); ys.push(ay);
-    if (xs.length > SMOOTH) { xs.shift(); ys.shift(); }
-    ax = xs.reduce((a, b) => a + b) / xs.length;
-    ay = ys.reduce((a, b) => a + b) / ys.length;
+    xs.push(ax);
+    if (xs.length > SMOOTH) xs.shift();
+    ax = xs.reduce(function (p, q) { return p + q; }) / xs.length;
 
-    let dir = "CENTER";
-    if (ay < UP_T) dir = "UP";
-    else if (ax > LEFT_T) dir = "LEFT";
+    T.axis = ax;
+    T.yaw = headYaw(lm);
+
+    if (!T.calibrated) {
+      last = cand = "UNCALIBRATED";
+      candN = 0;
+      T.gaze = "UNCALIBRATED";
+      T.resetHold();
+      if (badgeG) badgeG.textContent = "\u{1F441}️ Gaze: not calibrated";
+      if (badgeB) badgeB.textContent = "Calibration needed";
+      return;
+    }
+
+    var dir = classify(ax, T.profile.bands);
 
     if (dir === cand) candN++; else { cand = dir; candN = 1; }
     if (candN >= DEBOUNCE) last = cand;
-    window.SVTracking.gaze = last;
+    T.gaze = last;
     if (badgeG) badgeG.textContent = last;
 
     // How long the current direction has been held without changing.
-    const now = performance.now();
-    if (last === cand && candN >= DEBOUNCE) {
+    var now = performance.now();
+    if (last === cand && candN >= DEBOUNCE && last !== "UNSURE") {
       if (holdStart === 0) holdStart = now;
-      window.SVTracking.holdMs = now - holdStart;
+      T.holdMs = now - holdStart;
     } else {
-      window.SVTracking.resetHold();
+      T.resetHold();
     }
 
     if (badgeB) {
-      const s = (window.SVTracking.holdMs / 1000).toFixed(1);
-      badgeB.textContent = last + ": " + s + "s";
+      badgeB.textContent = last + ": " + (T.holdMs / 1000).toFixed(1) + "s";
     }
   }
 
   function start() {
-    const video = document.getElementById("videoFeed");
+    var video = document.getElementById("videoFeed");
     if (!video || typeof FaceMesh === "undefined") { setTimeout(start, 500); return; }
 
-    const fm = new FaceMesh({
-      locateFile: (f) => "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/" + f
+    window.SVTracking.loadProfile();
+
+    var fm = new FaceMesh({
+      locateFile: function (f) { return "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/" + f; }
     });
     fm.setOptions({
       maxNumFaces: 1, refineLandmarks: true,
@@ -118,8 +214,13 @@
     });
     fm.onResults(onResults);
 
-    async function loop() {
-      if (video.readyState >= 2) { try { await fm.send({ image: video }); } catch (e) {} }
+    var busy = false;
+    function loop() {
+      if (!busy && video.readyState >= 2) {
+        busy = true;
+        fm.send({ image: video }).then(function () { busy = false; })
+          .catch(function () { busy = false; });
+      }
       requestAnimationFrame(loop);
     }
     window.SVTracking.ready = true;
