@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in to SilentVoice AI</title>
+<meta name="robots" content="noindex">
+<style>
+  :root {
+    --bg: #f6f8fc; --surface: #ffffff; --ink: #12233d; --ink-soft: #41546f;
+    --line: #d7e0ee; --accent: #0b6c85; --accent-ink: #ffffff;
+    --band: #0b1c33; --band-ink: #eef5ff;
+    --error-bg: #fdecec; --error-line: #c0392b; --error-ink: #8c231a;
+    --focus: #0b6c85;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #071426; --surface: #0d2138; --ink: #eaf3ff; --ink-soft: #b3c8e2;
+      --line: #21395a; --accent: #6fd3ea; --accent-ink: #06121f;
+      --error-bg: #2a1414; --error-line: #d96a5c; --error-ink: #ffb9ae;
+      --focus: #6fd3ea;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg); color: var(--ink);
+    font-family: Inter, "Segoe UI", system-ui, Arial, sans-serif;
+    font-size: 17px; line-height: 1.6; padding: 24px;
+  }
+  .card {
+    width: 100%; max-width: 460px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 34px 32px 30px;
+    box-shadow: 0 18px 50px rgba(10,25,50,.10);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 800; margin-bottom: 22px; letter-spacing: -.01em;
+  }
+  .brand img { height: 34px; width: auto; display: block; }
+  h1 { font-size: 1.4rem; margin: 0 0 8px; letter-spacing: -.02em; }
+  p.lead { margin: 0 0 22px; color: var(--ink-soft); font-size: .97rem; }
+  label { display: block; font-weight: 700; margin: 0 0 6px; font-size: .95rem; }
+  input {
+    width: 100%; min-height: 52px;
+    padding: 0 14px; margin-bottom: 18px;
+    font: inherit; color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line); border-radius: 12px;
+  }
+  input:focus-visible, button:focus-visible, a:focus-visible {
+    outline: 3px solid var(--focus); outline-offset: 2px;
+  }
+  button {
+    width: 100%; min-height: 52px;
+    border: 0; border-radius: 12px; cursor: pointer;
+    font: inherit; font-weight: 800;
+    background: var(--accent); color: var(--accent-ink);
+  }
+  button[disabled], input[disabled] { opacity: .55; cursor: not-allowed; }
+  .error {
+    background: var(--error-bg);
+    border: 1px solid var(--error-line);
+    border-left-width: 5px;
+    color: var(--error-ink);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 0 0 20px;
+    font-size: .95rem;
+  }
+  .note { margin: 22px 0 0; color: var(--ink-soft); font-size: .88rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="brand">
+      <img src="/static/logo-light.png" alt="">
+      SilentVoice AI
+    </div>
+
+    <h1>Sign in</h1>
+    <p class="lead">The working prototype is not public while the product is under regulatory
+    assessment. Use the invitation code and password you were given.</p>
+
+    <!--MESSAGE-->
+
+    <form method="post" action="/sign-in">
+      <label for="code">Invitation code</label>
+      <input id="code" name="code" type="text" autocomplete="off" autocapitalize="off"
+             spellcheck="false" required autofocus>
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+      <button type="submit">Sign in</button>
+    </form>
+
+    <p class="note">If you do not have a code, there is nothing to sign in to yet.
+    <a href="/">Back to the public page</a>.</p>
+  </main>
+</body>
+</html>

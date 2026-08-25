@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /$
+Disallow: /app
+Disallow: /profiles
+Disallow: /cards
+Disallow: /generate
+Disallow: /speak
+Disallow: /emergency

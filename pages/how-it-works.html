@@ -1,0 +1,81 @@
+<div class="pagehead">
+  <div class="wrap">
+    <h1>How it works</h1>
+    <p>Three steps, about a minute to set up, on a computer the person already owns.</p>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2>The three steps</h2>
+    <div class="grid three">
+      <div class="card">
+        <div class="step">01</div>
+        <h4>Calibrate</h4>
+        <p>Three dots appear one at a time. The person looks at each one. The system measures how
+        that particular person looks left, at the middle and to the right.</p>
+      </div>
+      <div class="card">
+        <div class="step">02</div>
+        <h4>Choose</h4>
+        <p>Cards of everyday phrases highlight one at a time. A held look to one side selects the
+        highlighted card. A look to the other side moves on to the next one.</p>
+      </div>
+      <div class="card">
+        <div class="step">03</div>
+        <h4>Be heard</h4>
+        <p>The phrase is spoken aloud in a voice chosen on the device, and it appears in the session
+        history so the conversation can carry on.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap prose">
+    <h2>What it refuses to do</h2>
+    <h3>A tool that speaks for someone must not guess.</h3>
+    <p>Calibration measures whether the signal can actually be told apart for that person, on that
+    camera, in that light. When it cannot, gaze selection is not switched on and the screen says
+    why. An honest refusal is safer than a feature that works most of the time.</p>
+    <p>When a reading falls between two directions, nothing is selected. When the person moves out
+    of the position they were calibrated in, selection pauses and says so. Neither silence is a
+    failure. Both are the correct answer to an uncertain signal.</p>
+    <p>Camera images stay in the browser. No video and no picture of a face is uploaded or stored at
+    any time.</p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <h2>The engineering</h2>
+    <div class="prose">
+      <h3>A defect found by measuring, not by guessing.</h3>
+      <p>Until 25 August 2026 the gaze reading averaged two measurements that pointed in opposite
+      directions, one per eye. Because those directions are mirror images of each other, the average
+      cancelled most of the horizontal signal. The thresholds tuned on top of it never had a chance.</p>
+      <p>The correction measures both eyes along one shared direction. Both methods were then
+      computed from identical camera frames, so the comparison is between two formulas rather than
+      between two sittings.</p>
+    </div>
+    <div class="scroll">
+      <table class="runs">
+        <thead>
+          <tr><th>Run</th><th>Date</th><th>Frames per target</th><th>Previous method</th><th>Corrected method</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>25 Aug 2026</td><td>38</td><td>0.011</td><td>0.117</td></tr>
+          <tr><td>2</td><td>25 Aug 2026</td><td>38</td><td>0.017</td><td>0.129</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="prose">
+      <p>Two runs are shown because two runs were made. Neither is an accepted result: no threshold
+      for acceptable head movement had been agreed before the measurements were taken, so these are
+      engineering observations. A measurement register with run identifiers, sample counts and
+      acceptance rules is being written, and these numbers will move into it.</p>
+      <p>They are measurements from one developer on one machine. They say nothing about how the
+      system performs for anyone else, and no such claim is made.</p>
+    </div>
+  </div>
+</section>

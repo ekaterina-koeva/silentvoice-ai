@@ -2,6 +2,15 @@
 
 The emergency feature sends a request for help. It must never state,
 imply or infer a medical condition, diagnosis, symptom or prognosis.
+
+Since 25 August 2026 the route is behind the password, because the whole
+application is closed while the product is under regulatory assessment. The
+tests therefore authenticate. What the route does has not changed.
+
+Note what these tests do not prove. The route notifies nobody and records
+nothing. It returns a phrase, and the browser speaks that phrase aloud on the
+device. A real assistance alert with a confirmed recipient, a delivery status
+and an acknowledgement is a separate piece of work.
 """
 
 from fastapi.testclient import TestClient
@@ -30,15 +39,15 @@ MEDICAL_TERMS = [
 ]
 
 
-def test_emergency_endpoint_responds_successfully():
-    response = client.post("/emergency")
+def test_emergency_endpoint_responds_successfully(auth_headers):
+    response = client.post("/emergency", headers=auth_headers)
 
     assert response.status_code == 200
     assert response.json()["emergency"] is True
 
 
-def test_emergency_returns_the_configured_phrase():
-    response = client.post("/emergency")
+def test_emergency_returns_the_configured_phrase(auth_headers):
+    response = client.post("/emergency", headers=auth_headers)
 
     assert response.json()["phrase"] == EMERGENCY_PHRASE
 
@@ -57,9 +66,20 @@ def test_emergency_phrase_makes_no_medical_claim():
         assert term not in phrase, f"Emergency phrase must not contain '{term}'"
 
 
-def test_repeated_emergency_requests_all_succeed():
+def test_the_route_states_that_it_notifies_nobody(auth_headers):
+    """The response says what the feature does, and what it does not do.
+
+    Anyone reading the API, or a future maintainer, has to be able to see that
+    nothing is sent anywhere, without reading the implementation.
+    """
+    response = client.post("/emergency", headers=auth_headers)
+
+    assert response.json()["notifies_anyone"] is False
+
+
+def test_repeated_emergency_requests_all_succeed(auth_headers):
     for _ in range(3):
-        response = client.post("/emergency")
+        response = client.post("/emergency", headers=auth_headers)
 
         assert response.status_code == 200
         assert response.json()["emergency"] is True
