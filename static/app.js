@@ -255,7 +255,25 @@ async function generatePhrase() {
 // ── SPEAK ─────────────────────────────────────────────
 async function speakPhrase() {
   if (!selectedPhrase) return;
-    if ("speechSynthesis" in window) { const u=new SpeechSynthesisUtterance(selectedPhrase); u.lang = /[Ѐ-ӿ]/.test(selectedPhrase) ? "bg-BG" : "en-US"; u.rate=0.9; const vs=window.speechSynthesis.getVoices(); const pick=vs.find(v=>v.lang===u.lang && /natural|enhanced|premium|google/i.test(v.name)) || vs.find(v=>v.lang===u.lang); if(pick) u.voice=pick; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); return; }
+  if ("speechSynthesis" in window) {
+    const u = new SpeechSynthesisUtterance(selectedPhrase);
+    u.rate = 0.9;
+    // A voice the person chose in voice.js wins. Without one, guess the
+    // language from the text and take any voice that matches, as before.
+    const chosen = (window.SVVoice && window.SVVoice.pick) ? window.SVVoice.pick(selectedPhrase) : null;
+    if (chosen) {
+      u.voice = chosen;
+      u.lang = chosen.lang;
+    } else {
+      u.lang = /[\u0400-\u04FF]/.test(selectedPhrase) ? "bg-BG" : "en-US";
+      const vs = window.speechSynthesis.getVoices();
+      const pick = vs.find(v => v.lang === u.lang && /natural|enhanced|premium|google/i.test(v.name)) || vs.find(v => v.lang === u.lang);
+      if (pick) u.voice = pick;
+    }
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+    return;
+  }
   try { await fetch("/speak",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phrase:selectedPhrase})}); } catch {}
 }
 
