@@ -20,23 +20,43 @@
 // speaks on behalf of a person, deciding nothing is the correct answer to an
 // uncertain signal.
 //
-// The emergency button is deliberately excluded from gaze scanning. An
-// emergency signal must be an explicit act, never something a scan can reach.
+// The alert is deliberately excluded from card scanning. An alert must be an
+// explicit act, never something a scan can walk into. It is reached instead by
+// keeping the gaze on the side that moves between cards, for ARM_MS after the
+// move has already happened. Past the move, that hold did nothing at all, so
+// the gesture takes a part of the input that was previously dead and collides
+// with nothing that exists. Arming only opens the confirmation in alert.js.
+// Nothing is sent from this file.
 
 (function () {
   const SCAN_INTERVAL = 3500; // ms each card stays highlighted
   const DWELL_MS = 2000;      // held gaze needed to confirm a selection
   const ADVANCE_MS = 700;     // held gaze needed to move to the next card
+  const ARM_MS = 2000;        // further hold, after the move, that arms the alert
 
   let scanIndex = -1;
   let scanning = false;
   let timer = null;
   let selectedThisCard = false;
   let movedThisHold = false;
+  let armedThisHold = false;
   let holding = false;
 
   function cards() {
     return Array.from(document.querySelectorAll(".comm-card"));
+  }
+
+  function alertOpen() {
+    return !!(window.SVAlert && window.SVAlert.open);
+  }
+
+  // How far through the arming hold the person is. Without this the hold counts
+  // silently and there is no way to tell it is happening at all, which is
+  // indistinguishable from it not working. Reported on 26 August 2026.
+  function armProgress(pct) {
+    if (window.SVAlert && typeof window.SVAlert.progress === "function") {
+      window.SVAlert.progress(pct);
+    }
   }
 
   function selectSide() {
@@ -122,6 +142,16 @@
   function tick() {
     const t = window.SVTracking;
 
+    // While the alert confirmation is open it owns the gaze. Cards must not
+    // scan, highlight or select behind it.
+    if (alertOpen()) {
+      pauseScan();
+      paint(0);
+      holding = false;
+      requestAnimationFrame(tick);
+      return;
+    }
+
     if (t && t.ready) {
       // Pause scanning when no face is visible. Nothing should advance or
       // select while the camera cannot see the user.
@@ -139,11 +169,18 @@
       const g = t.gaze;
 
       // The hold that moves to the next card is released as soon as the gaze
-      // comes away from that side, so one hold moves exactly one card.
-      if (g !== other) movedThisHold = false;
+      // comes away from that side, so one hold moves exactly one card. The same
+      // release rearms the alert gesture, so one continuous hold can arm once.
+      if (g !== other) {
+        movedThisHold = false;
+        armedThisHold = false;
+        armProgress(0);
+        resumeScan();
+      }
 
       // Selection requires a deliberate, held gaze towards the calibrated side.
       if (side && g === side && scanIndex >= 0 && !selectedThisCard) {
+        armProgress(0);
         if (!holding) { holding = true; pauseScan(); }
         const pct = (t.holdMs / DWELL_MS) * 100;
         paint(pct);
@@ -162,6 +199,21 @@
           movedThisHold = true;
           resetHold();
           moveNow();
+        } else if (movedThisHold && !armedThisHold) {
+          // The move has already happened and the gaze has stayed. The scan is
+          // paused here, because its own step resets the hold and would wipe
+          // out the count underneath the person. The bar fills so the hold can
+          // be seen while it is counting. Nothing is sent from here: this only
+          // opens the confirmation.
+          pauseScan();
+          armProgress((t.holdMs / ARM_MS) * 100);
+          if (t.holdMs >= ARM_MS) {
+            armedThisHold = true;
+            resetHold();
+            armProgress(0);
+            resumeScan();
+            if (window.SVAlert && typeof window.SVAlert.arm === "function") window.SVAlert.arm();
+          }
         }
       } else {
         if (holding) { holding = false; resumeScan(); }

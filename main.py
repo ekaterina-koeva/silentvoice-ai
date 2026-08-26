@@ -53,6 +53,11 @@ SMTP_USER_ENV = "SV_SMTP_USER"
 SMTP_PASSWORD_ENV = "SV_SMTP_PASSWORD"
 CONTACT_TO_ENV = "SV_CONTACT_TO"
 
+# The alert has its own recipient, separate from the contact form. The person
+# who comes when help is asked for is not the person who answers enquiries.
+# Several addresses may be given, separated by commas.
+ALERT_TO_ENV = "SV_ALERT_TO"
+
 MAX_MESSAGES = 5
 MESSAGE_WINDOW_SECONDS = 3600
 MAX_MESSAGE_LENGTH = 4000
@@ -586,12 +591,100 @@ def speak(request: SpeakRequest):
     }
 
 
+def _alert_recipients() -> list:
+    """The addresses set up to receive a request for help."""
+    raw = os.environ.get(ALERT_TO_ENV, "")
+    return [a.strip() for a in raw.split(",") if a.strip()]
+
+
+def _alert_body(when: str) -> str:
+    """The text a recipient reads.
+
+    It says what was asked for, when, and what this is not. It says nothing
+    about why, because the interface has no way of knowing why and must not
+    invent one.
+    """
+    return (
+        f"A request for assistance was sent from a SilentVoice AI communication "
+        f"interface at {when}.\n\n"
+        f"The person selected: {EMERGENCY_PHRASE}\n\n"
+        "This comes from a communication support interface. It is not an emergency "
+        "service, and no emergency service has been contacted. If you cannot go to "
+        "the person yourself, please telephone someone who can.\n"
+    )
+
+
+def _deliver(note: EmailMessage) -> None:
+    """Hands the message to the mail server. Separated so it can be replaced.
+
+    Kept apart from the route so that the tests can stand in for it, and so that
+    moving from one sending service to another touches this function and nothing
+    else.
+    """
+    host = os.environ[SMTP_HOST_ENV]
+    port = int(os.environ.get(SMTP_PORT_ENV, "587"))
+    user = os.environ.get(SMTP_USER_ENV)
+    password = os.environ.get(SMTP_PASSWORD_ENV)
+
+    with smtplib.SMTP(host, port, timeout=15) as server:
+        server.starttls()
+        if user and password:
+            server.login(user, password)
+        server.send_message(note)
+
+
 @app.post("/emergency", dependencies=[Depends(require_access)])
 def emergency():
-    """Returns the help request phrase. It notifies nobody and records nothing.
+    """Sends a request for assistance to the addresses in SV_ALERT_TO.
 
-    The interface speaks the phrase aloud on the device. This route exists only
-    so that behaviour is unchanged by the access control work, and it is to be
-    replaced by a real assistance alert.
+    The phrase comes back whatever happens, because the interface speaks it
+    aloud on the device and that part needs no network. What the response must
+    never do is suggest that somebody was told when nobody was, so delivery is
+    reported as it actually went, and the interface says so on screen.
+
+    Nothing about the request is written down here. There is no acknowledgement
+    yet: confirming that a person read it needs somewhere to keep that fact, and
+    an alert that forgets it was acknowledged is worse than one that never
+    claimed it could remember.
     """
-    return {"phrase": EMERGENCY_PHRASE, "emergency": True, "notifies_anyone": False}
+    # time is already imported for the contact form limiter. Reaching for
+    # datetime here would add an import for the sake of one line.
+    when = time.strftime("%H:%M UTC on %d %B %Y", time.gmtime())
+    recipients = _alert_recipients()
+
+    if not recipients or not os.environ.get(SMTP_HOST_ENV):
+        return {
+            "phrase": EMERGENCY_PHRASE,
+            "emergency": True,
+            "delivered": False,
+            "recipients": 0,
+            "reason": "not_configured",
+            "at": when,
+        }
+
+    note = EmailMessage()
+    note["Subject"] = "SilentVoice AI: a request for assistance"
+    note["From"] = os.environ.get(SMTP_USER_ENV, recipients[0])
+    note["To"] = ", ".join(recipients)
+    note.set_content(_alert_body(when))
+
+    try:
+        _deliver(note)
+    except Exception:
+        return {
+            "phrase": EMERGENCY_PHRASE,
+            "emergency": True,
+            "delivered": False,
+            "recipients": 0,
+            "reason": "send_failed",
+            "at": when,
+        }
+
+    return {
+        "phrase": EMERGENCY_PHRASE,
+        "emergency": True,
+        "delivered": True,
+        "recipients": len(recipients),
+        "reason": None,
+        "at": when,
+    }

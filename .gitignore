@@ -9,3 +9,5 @@ build/
 .vscode/
 
 diff.txt
+apply_alert.py
+fix_alert.py

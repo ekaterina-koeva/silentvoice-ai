@@ -6,26 +6,31 @@
 <title>Sign in to SilentVoice AI</title>
 <meta name="robots" content="noindex">
 <style>
-  /* Every colour here is copied from static/style.css, the stylesheet of the
-     working interface, so that signing in looks like the beginning of the
-     application rather than a separate page. */
+  /* The background is the background of the working interface, copied from
+     static/style.css, so signing in is the beginning of the application and not
+     a separate place. The card on top of it is light on purpose. A dark card on
+     a dark background leaves the fields barely visible, which is the opposite
+     of what a form asking for two things it will not explain should do. */
   :root {
-    --line: rgba(120,180,255,.18); --line2: rgba(22,213,255,.35);
-    --text: #eef7ff; --muted: #9fb3cc; --soft: #cfe6ff;
-    --cyan: #16d5ff; --red: #ff4f68;
-    --field: rgba(8,20,42,.95);
-    --shadow: 0 26px 70px rgba(0,0,0,.42);
-    --glow: 0 0 36px rgba(22,213,255,.22);
-    --focus: #16d5ff;
+    --cyan: #16d5ff;
+    --ink: #0c1a30;
+    --ink-soft: #4a5b72;
+    --line: #dde4ee;
+    --line-strong: #b9c6d8;
+    --card: #ffffff;
+    --field: #f7f9fc;
+    --error-bg: #fdf1f0;
+    --error-line: #e7cdc9;
+    --error-rule: #c0392b;
+    --error-ink: #7d2b20;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh;
     display: flex; align-items: center; justify-content: center;
     padding: 28px;
-    color: var(--text);
     font-family: Inter, "Segoe UI", system-ui, Arial, sans-serif;
-    font-size: 17px; line-height: 1.65;
+    font-size: 17px; line-height: 1.62; color: var(--ink);
     background:
       radial-gradient(circle at 18% -10%,rgba(22,213,255,.16),transparent 28%),
       radial-gradient(circle at 80% 0%,rgba(67,97,255,.12),transparent 34%),
@@ -42,67 +47,69 @@
   }
   .card {
     position: relative; overflow: hidden; z-index: 1;
-    width: 100%; max-width: 470px;
-    border: 1px solid var(--line); border-radius: 22px;
-    background: linear-gradient(145deg,rgba(10,26,56,.86),rgba(6,16,34,.92));
-    box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
-    padding: 40px 36px 34px;
+    width: 100%; max-width: 460px;
+    background: var(--card);
+    border-radius: 20px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08);
+    padding: 38px 36px 32px;
     animation: rise .5s cubic-bezier(.22,.7,.3,1) both;
-  }
-  .card::before {
-    content: ""; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(circle at top left,rgba(22,213,255,.09),transparent 38%);
   }
   /* The cyan rule fills across the top, the same movement as the dwell
      indicator inside the interface. */
   .card::after {
-    content: ""; position: absolute; left: 0; top: 0; height: 2px; width: 100%;
-    background: linear-gradient(90deg,var(--cyan),rgba(24,119,255,.5),transparent);
+    content: ""; position: absolute; left: 0; top: 0; height: 3px; width: 100%;
+    background: linear-gradient(90deg,#165eff,var(--cyan),transparent);
     transform-origin: left center; transform: scaleX(0);
     animation: dwell 1.1s cubic-bezier(.22,.7,.3,1) .15s forwards;
   }
-  .card > * { position: relative; z-index: 1; }
   .brand {
-    display: flex; align-items: center; gap: 12px;
-    font-size: 1.14rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: 26px;
+    display: flex; align-items: center; gap: 11px;
+    font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: 24px;
   }
-  .brand img { height: 30px; width: auto; display: block; }
-  .brand-ai { color: var(--cyan); text-shadow: 0 0 18px rgba(22,213,255,.5); }
-  h1 { font-size: 1.45rem; font-weight: 800; margin: 0 0 10px; letter-spacing: -.025em; }
-  p.lead { margin: 0 0 24px; color: var(--soft); font-size: .97rem; }
-  label { display: block; font-weight: 700; margin: 0 0 8px; font-size: .93rem; }
+  .brand img { height: 28px; width: auto; display: block; }
+  .brand-ai { color: #0e94b8; }
+  h1 { font-size: 1.42rem; font-weight: 800; margin: 0 0 8px; letter-spacing: -.025em; }
+  p.lead { margin: 0 0 22px; color: var(--ink-soft); font-size: .95rem; }
+  label { display: block; font-weight: 700; margin: 0 0 6px; font-size: .9rem; }
   input {
-    width: 100%; min-height: 52px; padding: 0 15px; margin-bottom: 18px;
-    font: inherit; color: var(--text);
+    width: 100%; min-height: 52px; padding: 0 15px; margin-bottom: 16px;
+    font: inherit; font-size: 1rem; color: var(--ink);
     background: var(--field);
-    border: 1px solid var(--line); border-radius: 12px;
-    transition: border-color .18s ease, box-shadow .18s ease;
+    border: 1px solid var(--line-strong); border-radius: 11px;
+    transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
   }
-  input:focus { border-color: var(--line2); box-shadow: 0 0 20px rgba(22,213,255,.12); }
+  input::placeholder { color: #93a2b6; opacity: 1; }
+  input:hover:not([disabled]) { border-color: #8ea2bd; }
+  input:focus {
+    background: #ffffff; border-color: #0e94b8;
+    box-shadow: 0 0 0 4px rgba(22,213,255,.18);
+  }
+  input[disabled] {
+    background: #f2f4f8; border-style: dashed; border-color: var(--line);
+    color: #93a2b6; cursor: not-allowed;
+  }
   input:focus-visible, button:focus-visible, a:focus-visible {
-    outline: 3px solid var(--focus); outline-offset: 2px;
+    outline: 3px solid #0e94b8; outline-offset: 2px;
   }
   button {
-    width: 100%; min-height: 52px; margin-top: 4px;
-    border: 0; border-radius: 14px; cursor: pointer;
-    font: inherit; font-weight: 700; color: #fff;
+    width: 100%; min-height: 52px; margin-top: 6px;
+    border: 0; border-radius: 12px; cursor: pointer;
+    font: inherit; font-weight: 700; font-size: 1rem; color: #fff;
     background: linear-gradient(135deg,#165eff,#10cfff);
-    box-shadow: 0 0 28px rgba(22,213,255,.18);
-    transition: transform .2s ease, box-shadow .2s ease;
+    box-shadow: 0 8px 22px rgba(16,110,255,.3);
+    transition: transform .18s ease, box-shadow .18s ease;
   }
-  button:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(22,213,255,.30); }
-  button[disabled], input[disabled] { opacity: .5; cursor: not-allowed; transform: none; }
-  button[disabled]:hover { transform: none; box-shadow: 0 0 28px rgba(22,213,255,.18); }
+  button:hover:not([disabled]) { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(16,110,255,.38); }
+  button[disabled] { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
   .error {
-    border: 1px solid rgba(255,79,104,.45); border-left: 3px solid var(--red);
-    background: linear-gradient(135deg,rgba(127,29,29,.42),rgba(69,10,10,.3));
-    color: #ffc9d1;
-    border-radius: 6px 14px 14px 6px;
-    padding: 14px 17px; margin: 0 0 22px;
-    font-size: .94rem; line-height: 1.6;
+    border: 1px solid var(--error-line); border-left: 3px solid var(--error-rule);
+    background: var(--error-bg); color: var(--error-ink);
+    border-radius: 5px 12px 12px 5px;
+    padding: 13px 16px; margin: 0 0 20px;
+    font-size: .92rem; line-height: 1.55;
   }
-  .note { margin: 24px 0 0; color: var(--muted); font-size: .88rem; line-height: 1.6; }
-  a { color: var(--cyan); }
+  .note { margin: 20px 0 0; color: var(--ink-soft); font-size: .85rem; line-height: 1.55; }
+  a { color: #0e94b8; }
   @keyframes dwell { to { transform: scaleX(1); } }
   @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) {
@@ -114,7 +121,7 @@
 <body>
   <main class="card">
     <div class="brand">
-      <img src="/static/logo-light.png" alt="">
+      <img src="/static/logo-dark.png" alt="">
       SilentVoice <span class="brand-ai">AI</span>
     </div>
 
@@ -127,10 +134,11 @@
     <form method="post" action="/sign-in">
       <label for="code">Invitation code</label>
       <input id="code" name="code" type="text" autocomplete="off" autocapitalize="off"
-             spellcheck="false" required autofocus>
+             spellcheck="false" placeholder="SV-XXXX-XXXX-XXXX" required autofocus>
 
       <label for="password">Password</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <input id="password" name="password" type="password" autocomplete="current-password"
+             placeholder="The password you were given" required>
 
       <button type="submit">Sign in</button>
     </form>

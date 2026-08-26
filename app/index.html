@@ -174,13 +174,10 @@
           <span class="btn-sub">Clear all</span>
         </button>
       </div>
-      <button type="button" class="emergency-btn" id="emergencyBtn" onclick="triggerEmergency()" aria-label="Emergency: please come immediately">
-        <span class="emergency-icon">🚨</span>
-        <span class="emergency-copy">
-          <strong>Emergency</strong>
-          <small>Immediate assistance</small>
-        </span>
-      </button>
+      <!-- The control for asking for assistance is no longer here. It sat at
+           the bottom of a scrolling column, which put it out of reach of the
+           person it exists for. It is now a fixed bar across the top of the
+           screen, built in alert.js. -->
     </div>
 
   </section><!-- /center -->
@@ -269,6 +266,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="/static/tracking.js"></script>
 <script src="/static/navigation.js"></script>
+<script src="/static/alert.js"></script>
   <script src="/static/calibrate.js"></script>
 </body>
 </html>

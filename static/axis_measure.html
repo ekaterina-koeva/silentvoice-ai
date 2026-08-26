@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SilentVoice axis measurement</title>
+<meta name="robots" content="noindex">
+<style>
+  body {
+    margin: 0; min-height: 100vh; background: #071225; color: #eef7ff;
+    font-family: Inter, "Segoe UI", system-ui, Arial, sans-serif;
+    display: flex; flex-direction: column; align-items: center; padding: 22px;
+  }
+  h1 { font-size: 1.2rem; font-weight: 700; margin: 0 0 4px; }
+  .hint { color: #9fb3cc; font-size: .95rem; margin: 0 0 18px; text-align: center; max-width: 640px; }
+  #live { color: #9fb3cc; font-size: .85rem; min-height: 20px; margin-bottom: 8px; }
+  #err { color: #ff8f9f; font-size: .9rem; min-height: 20px; }
+  .now {
+    font-variant-numeric: tabular-nums; font-weight: 800;
+    font-size: 4.4rem; line-height: 1; letter-spacing: -.02em; margin: 6px 0 2px;
+  }
+  .now.wide { color: #35f3a1; }
+  .nowlabel { color: #9fb3cc; font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 18px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 150px); gap: 14px; margin-bottom: 18px; }
+  .cardm {
+    border: 1px solid rgba(120,180,255,.25); border-radius: 16px; padding: 16px 12px;
+    text-align: center; background: rgba(10,26,56,.7);
+  }
+  .cardm .k { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: #9fb3cc; }
+  .cardm .val { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 2rem; margin-top: 6px; }
+  .cardm .val.empty { color: #4a5b72; }
+  button {
+    min-height: 52px; padding: 0 20px; border-radius: 12px; cursor: pointer;
+    font: inherit; font-weight: 700; border: 1px solid rgba(22,213,255,.5);
+    background: rgba(22,213,255,.08); color: #c9f6ff; margin: 4px;
+  }
+  button.busy { opacity: .5; }
+  .bigbtn { background: linear-gradient(135deg,#165eff,#10cfff); color: #fff; border: 0; min-width: 150px; }
+  #video { position: fixed; right: 14px; bottom: 14px; width: 150px; border-radius: 8px; opacity: .55; }
+  .row { display: flex; flex-wrap: wrap; justify-content: center; }
+  #verdict {
+    margin-top: 18px; max-width: 680px; white-space: pre-wrap; line-height: 1.6;
+    font-size: 1rem; background: rgba(10,26,56,.7); border: 1px solid rgba(120,180,255,.2);
+    border-radius: 14px; padding: 18px 20px; min-height: 24px;
+  }
+</style>
+</head>
+<body>
+  <h1>Axis measurement</h1>
+  <p class="hint">This measures the horizontal gaze axis on your camera, the number the assistance bar
+  will use. Look straight ahead and press Record centre. Then look firmly to one side and press Record
+  one side, and firmly to the other and press Record other side.</p>
+
+  <div id="live">starting</div>
+  <div id="err"></div>
+
+  <div class="now" id="now">n/a</div>
+  <div class="nowlabel">axis right now</div>
+
+  <div class="cards">
+    <div class="cardm"><div class="k">Centre</div><div class="val empty" id="vCentre">not set</div></div>
+    <div class="cardm"><div class="k">One side</div><div class="val empty" id="vA">not set</div></div>
+    <div class="cardm"><div class="k">Other side</div><div class="val empty" id="vB">not set</div></div>
+  </div>
+
+  <div class="row">
+    <button class="bigbtn" id="recC">Record centre</button>
+    <button class="bigbtn" id="recA">Record one side</button>
+    <button class="bigbtn" id="recB">Record other side</button>
+  </div>
+  <div class="row">
+    <button id="clear">Clear</button>
+  </div>
+
+  <div id="verdict"></div>
+
+  <video id="video" autoplay playsinline muted></video>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"></script>
+<script>
+  var MP_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/";
+
+  var LEFT_IRIS = 468, RIGHT_IRIS = 473;
+  var L_OUT = 33, L_IN = 133, R_IN = 362, R_OUT = 263;
+
+  var liveEl = document.getElementById("live");
+  var errEl = document.getElementById("err");
+  var nowEl = document.getElementById("now");
+  var video = document.getElementById("video");
+
+  var current = null, recording = null, values = {};
+
+  function say(t) { liveEl.textContent = t; }
+  function fail(t) { errEl.textContent = t; }
+  function med(a) { if (!a.length) return NaN; var b = a.slice().sort(function (x, y) { return x - y; }); return b[Math.floor(b.length / 2)]; }
+  function f(x) { return (x === undefined || x === null || isNaN(x)) ? "n/a" : x.toFixed(3); }
+
+  // The horizontal axis, exactly as gaze_diag.html computes avgFix: each iris
+  // placed between the fixed eye corners, then the two eyes averaged. This is
+  // the same number tracking.js exposes as axis.
+  function axisOf(lm) {
+    var lo = lm[L_OUT], li = lm[L_IN], ro = lm[R_OUT], ri = lm[R_IN];
+    var ci = lm[LEFT_IRIS], cr = lm[RIGHT_IRIS];
+    var lLo = Math.min(lo.x, li.x), lHi = Math.max(lo.x, li.x);
+    var rLo = Math.min(ro.x, ri.x), rHi = Math.max(ro.x, ri.x);
+    var lFix = (lHi - lLo) < 1e-6 ? 0.5 : (ci.x - lLo) / (lHi - lLo);
+    var rFix = (rHi - rLo) < 1e-6 ? 0.5 : (cr.x - rLo) / (rHi - rLo);
+    return (lFix + rFix) / 2;
+  }
+
+  function onResults(res) {
+    if (!res.multiFaceLandmarks || !res.multiFaceLandmarks.length) {
+      current = null; say("model is running, no face in view"); nowEl.textContent = "n/a";
+      nowEl.classList.remove("wide"); return;
+    }
+    var lm = res.multiFaceLandmarks[0];
+    if (!lm[LEFT_IRIS] || !lm[RIGHT_IRIS]) { say("face found, iris landmarks missing"); return; }
+    current = axisOf(lm);
+    say("tracking");
+    nowEl.textContent = f(current);
+    // Green when the axis is clearly away from a typical centre, so the effect
+    // of looking aside is visible without reading the number.
+    nowEl.classList.toggle("wide", Math.abs(current - 0.5) > 0.06);
+    if (recording) recording.samples.push(current);
+  }
+
+  function record(key, el, targetEl) {
+    if (recording) return;
+    if (current === null) { fail("No face is being tracked yet."); return; }
+    fail("");
+    recording = { samples: [] };
+    el.classList.add("busy");
+    setTimeout(function () {
+      el.classList.remove("busy");
+      var s = recording.samples; recording = null;
+      if (s.length < 8) { fail("Too few frames. Keep your face in view and try again."); return; }
+      var m = med(s);
+      values[key] = m;
+      targetEl.textContent = f(m);
+      targetEl.classList.remove("empty");
+      verdict();
+    }, 2500);
+  }
+
+  function verdict() {
+    if (values.centre === undefined || values.a === undefined || values.b === undefined) {
+      document.getElementById("verdict").textContent =
+        "Record all three to get the number for the assistance bar.";
+      return;
+    }
+    var lo = Math.min(values.a, values.b);
+    var hi = Math.max(values.a, values.b);
+    var c = values.centre;
+    var sep = Math.min(Math.abs(c - lo), Math.abs(hi - c));
+    var v = "";
+    v += "Centre: " + f(c) + "\n";
+    v += "The two sides: " + f(lo) + " and " + f(hi) + "\n";
+    v += "Nearest side sits " + f(sep) + " away from centre.\n\n";
+    if (sep < 0.03) {
+      v += "This is too small to tell a side from centre reliably. The bar cannot use gaze on this camera without calibration.";
+    } else {
+      v += "This is a usable separation. Tell these three numbers to set the bar threshold.";
+    }
+    document.getElementById("verdict").textContent = v;
+  }
+
+  document.getElementById("recC").addEventListener("click", function () { record("centre", this, document.getElementById("vCentre")); });
+  document.getElementById("recA").addEventListener("click", function () { record("a", this, document.getElementById("vA")); });
+  document.getElementById("recB").addEventListener("click", function () { record("b", this, document.getElementById("vB")); });
+  document.getElementById("clear").addEventListener("click", function () {
+    values = {};
+    ["vCentre", "vA", "vB"].forEach(function (id) {
+      var el = document.getElementById(id); el.textContent = "not set"; el.classList.add("empty");
+    });
+    document.getElementById("verdict").textContent = "";
+  });
+
+  // ---- start up -----------------------------------------------------------
+  var fm = new FaceMesh({ locateFile: function (file) { return MP_BASE + file; } });
+  fm.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+  fm.onResults(onResults);
+
+  navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } }).then(function (stream) {
+    video.srcObject = stream;
+    var busy = false;
+    function pump() {
+      if (!busy && video.readyState >= 2) {
+        busy = true;
+        fm.send({ image: video }).then(function () { busy = false; });
+      }
+      requestAnimationFrame(pump);
+    }
+    pump();
+  }).catch(function (e) {
+    fail("The camera could not be opened: " + e.message);
+  });
+</script>
+</body>
+</html>

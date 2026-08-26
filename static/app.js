@@ -286,19 +286,12 @@ function repeatPhrase() {
 }
 
 const EMERGENCY_PHRASE = "Emergency: please come immediately";
+window.EMERGENCY_PHRASE = EMERGENCY_PHRASE;
 
-async function triggerEmergency() {
-  setPhrase(EMERGENCY_PHRASE);
-  addToHistory(EMERGENCY_PHRASE, "🚨", true);
-  speakPhrase();
-
-  try {
-    const res = await fetch("/emergency", { method: "POST" });
-    if (!res.ok) throw new Error(`Emergency endpoint returned ${res.status}`);
-  } catch (err) {
-    console.error("Emergency history sync failed:", err);
-  }
-}
+// The alert lives in alert.js, which replaces window.triggerEmergency with the
+// confirmation step. It used to send the moment the button was pressed, with
+// one click and no way back, and it told the person nothing about whether
+// anybody had been reached. Both of those are why it moved.
 
 // ── HISTORY ───────────────────────────────────────────
 // Phrases can come from the language model, so they are never trusted as markup.

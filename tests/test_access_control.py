@@ -215,11 +215,16 @@ def test_cards_open_with_the_code_and_the_password(configured):
     assert response.json()["profile"] == "general"
 
 
-def test_help_request_states_that_it_notifies_nobody(configured):
+def test_the_help_request_is_reachable_with_a_code(configured):
+    """The alert sits behind the invitation code like everything else.
+
+    What it reports about delivery is covered in test_emergency.py. Here the
+    only question is whether an invited person can reach it at all.
+    """
     response = _client().post("/emergency", headers=_basic(CODE, PASSWORD))
 
     assert response.status_code == 200
-    assert response.json()["notifies_anyone"] is False
+    assert response.json()["emergency"] is True
 
 
 def test_the_development_switch_opens_the_application(monkeypatch):
