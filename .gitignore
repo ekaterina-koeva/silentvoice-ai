@@ -11,3 +11,4 @@ build/
 diff.txt
 apply_alert.py
 fix_alert.py
+fix_ethics.py
