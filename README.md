@@ -1,107 +1,101 @@
 # SilentVoice AI
 
-**AI-powered assistive communication platform for people without a reliable voice.**
-
-> Communication is not a privilege. It is a right.
-
----
-
-## What is SilentVoice AI?
-
-SilentVoice AI uses a standard camera, computer vision, and a large language model to detect eye gaze and turn it into text and spoken output. It runs in the browser and requires no specialist hardware.
-
-The system is designed for people with:
-
-- Autism
-- Cerebral palsy
-- Stroke recovery
-- Voice loss (throat cancer, vocal cord damage)
-- Speech impairments
-- Any communication difficulty
+**A browser based communication support tool for people who cannot speak and cannot
+reliably use their hands.**
 
 ---
 
-## What SilentVoice AI does NOT do
+## What SilentVoice AI is
 
-- It does not read minds
-- It does not provide medical diagnosis
-- It does not detect emotion or pain
-- It is not a medical device
+SilentVoice AI runs in an ordinary web browser and uses a standard webcam. It tracks a
+person's gaze and lets them select and speak everyday phrases. It needs no specialist
+hardware.
 
-It is a communication support tool.
+Camera frames are processed on the person's own device. They are not uploaded and they
+are not stored.
+
+It is a communication support tool. It helps a person say something they have chosen.
+
+---
+
+## Current status
+
+This is an early stage prototype under active development.
+
+The working interface is not publicly reachable. It sits behind an invitation code and a
+password while regulatory preparation continues. Only the public information pages are
+open. See Access below.
+
+What is true today:
+
+- Gaze is measured on one shared horizontal axis and classified after per user
+  calibration.
+- Calibration refuses to enable gaze selection when the measured signal is not clearly
+  separable, and there is no threshold inherited from another person.
+- A reading that falls between two directions is reported as uncertain and selects
+  nothing.
+- The calibration profile records the seating position. If the person moves so that it no
+  longer describes them, selection pauses and the interface says the position has changed.
+- Cards are presented in an automatic scan and selected by a held gaze.
+- An assistance control is fixed across the top of the screen, outside the scan, reachable
+  by held gaze, by press and hold, and by keyboard or switch. It always asks for
+  confirmation and never sends because time ran out.
+
+What has not been established:
+
+- There is no formal usability study, and no recorded accuracy figure for gaze selection.
+- The system has not been shown to work for people other than the developer. No
+  measurement with another person exists.
+- There are no users and no pilot.
+- The regulatory classification is not settled. A paid regulatory opinion is pending.
+
+It should not be relied on as a primary communication route, and it should not be used in
+a clinical setting without evaluation by a qualified speech and language therapist.
 
 ---
 
 ## Features
 
-- Gaze tracking (centre, left, up)
-- Dwell-based selection, hold a gaze towards the left edge of the screen for 2 seconds
-- Communication cards with predefined phrases
-- AI-assisted sentence generation using soft, non-alarming language
-- Browser-based text-to-speech, with automatic language detection (Bulgarian / English)
-- Carer Mode with communication history
-- Emergency communication button with spoken alert and emergency history flag
-- Accessibility profiles (General, Autism, Cerebral Palsy, Stroke, Voice Loss)
-
-Selection was originally blink-based, then a held centre gaze. Both caused unintended
-activations, because any user reading the screen triggered a card. Selection now
-requires a deliberate gaze away from the screen content.
-
-Gaze selection is not yet reliable. Measurement on 23 August 2026 with one user showed
-that a rightward gaze cannot be separated from a centred one on a standard webcam, and
-that a fixed threshold does not hold between sessions for the same user. Per user
-calibration is required before gaze selection can be described as working. Until then
-the interface is operated by pointer or touch.
+- Gaze tracking on one horizontal axis, calibrated per person
+- Per user calibration with quality checks that refuse a poor profile
+- Automatic scanning of communication cards, with selection by held gaze
+- Selection by pointer or touch, which does not require calibration
+- Assistance control reachable by gaze, by press and hold, and by keyboard or switch
+- AI assisted phrase generation
+- Browser text to speech, with voice selection and a preview
+- Session history and export
 
 ---
 
-## Tech Stack
+## Tech stack
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Python + FastAPI |
-| Vision | MediaPipe Face Mesh (browser) |
+| Backend | Python and FastAPI |
+| Vision | MediaPipe Face Mesh, in the browser |
 | AI | Anthropic Claude API |
-| TTS | Web Speech API (browser), pyttsx3 (server) |
-| Frontend | HTML + CSS + JavaScript |
+| Speech | Web Speech API, in the browser |
+| Frontend | HTML, CSS and JavaScript |
 | Hosting | Render |
+| Tests | pytest, run on every change through GitHub Actions |
 
 ---
 
-## Project Structure
+## Access
+
+The working interface is at `/app` and is closed. Reaching it needs both an invitation
+code and a password, supplied as environment variables:
 
 ```
-silentvoice-ai/
-├── main.py
-├── requirements.txt              runtime
-├── requirements-prototype.txt    local prototype extras
-├── requirements-dev.txt          test and audit tooling
-├── LICENSE
-├── ai/
-│   ├── phrase_gen.py
-│   └── prompts.py
-├── cards/
-│   └── phrases.py
-├── tts/
-│   └── speaker.py
-├── vision/
-│   ├── face_tracker.py
-│   ├── eye_tracker.py         legacy, not used by the browser pipeline
-│   ├── blink.py               legacy, not used by the browser pipeline
-│   └── head_movement.py       legacy, not loaded by main.py
-├── tests/
-│   ├── conftest.py
-│   └── test_emergency.py
-├── docs/
-│   └── security/
-└── static/
-    ├── index.html
-    ├── style.css
-    ├── app.js
-    ├── tracking.js            MediaPipe gaze tracking
-    ├── navigation.js          scanning and gaze selection
-    └── icons.js               not loaded by index.html
+SV_INVITATION_CODES     one or more codes, separated by commas
+SV_APP_PASSWORD         the password that goes with them
 ```
+
+Both are required. Several codes may be set so that one can be withdrawn without
+affecting the others; withdrawing a code also ends the sessions opened with it. If either
+variable is missing, the application closes rather than opening.
+
+The public information pages stay reachable without a code.
 
 ---
 
@@ -111,66 +105,58 @@ silentvoice-ai/
 git clone https://github.com/ekaterina-koeva/silentvoice-ai
 cd silentvoice-ai
 python -m venv venv
-source venv/bin/activate  # macOS / Linux
-# venv\Scripts\activate   # Windows
+source venv/bin/activate   # macOS and Linux
+# venv\Scripts\activate    # Windows
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-An Anthropic API key is required for AI phrase generation. Set it as an
-environment variable before starting the server:
+An Anthropic API key is needed for phrase generation:
 
 ```bash
-export ANTHROPIC_API_KEY=your-key-here   # macOS / Linux
-# $env:ANTHROPIC_API_KEY="your-key-here" # Windows PowerShell
+export ANTHROPIC_API_KEY=your-key-here     # macOS and Linux
+# $env:ANTHROPIC_API_KEY="your-key-here"   # Windows PowerShell
+```
+
+Set `SV_INVITATION_CODES` and `SV_APP_PASSWORD` in the same way before starting the
+server, or the interface will stay closed.
+
+Running the tests:
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest -q
 ```
 
 ---
 
-## Status
+## Measuring the gaze axis on a different camera
 
-This is an early-stage prototype. It has not undergone clinical validation or
-formal usability testing, and should not be used as a primary communication
-device in a clinical setting without evaluation by a qualified speech and
-language therapist.
+The interface calibrates itself for each person, so no manual measurement is needed for
+ordinary use. The diagnostic pages exist for checking a camera or investigating a defect:
 
----
+- `/static/axis_measure.html` reports the horizontal axis and records a value for the
+  centre and for each side, with no browser console needed.
+- `/static/gaze_diag.html` is the fuller diagnostic used to find the axis defect in August
+  2026.
 
-## Roadmap
-
-- [x] Face tracking
-- [x] Gaze tracking
-- [x] Communication cards
-- [x] AI phrase generation
-- [x] Text-to-speech
-- [x] Emergency alert button
-- [x] Automated tests for the emergency path
-- [ ] Per user gaze calibration
-- [ ] Icon and colour mode for non-readers
-- [ ] Rate limiting on the phrase generation endpoint
-- [ ] Continuous integration
-- [ ] Offline phrase cache
-- [ ] Persistent storage (SQLite)
-- [ ] Multi-language support
-- [ ] Mobile application
-- [ ] Research preprint
-- [ ] Clinical and user feedback
+Values measured on one camera do not carry over to another. Anyone repeating this work
+should measure on their own camera.
 
 ---
 
 ## Author
 
-Ekaterina Koeva, creator and developer of SilentVoice AI, Sofia, Bulgaria.
+Ekaterina Koeva, creator and developer of SilentVoice AI.
 
 ---
 
 ## Contributing
 
-This is an open project. Feedback from carers, therapists, accessibility
-professionals, and people with communication needs is welcome.
+This is an open project. Feedback from carers, therapists, accessibility professionals and
+people with communication needs is welcome.
 
-Please open an issue on GitHub:
-https://github.com/ekaterina-koeva/silentvoice-ai/issues
+Please open an issue: https://github.com/ekaterina-koeva/silentvoice-ai/issues
 
 ---
 
