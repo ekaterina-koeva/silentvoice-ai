@@ -120,3 +120,68 @@ body:has(.mode-btn:nth-child(2).active) .comm-card{filter:saturate(.82)}
    a fixed width so the seconds do not shift the text as they count. */
 .signal-card{height:92px;min-height:92px}
 .sig-val{font-variant-numeric:tabular-nums}
+
+/* ============================================================
+   Layout repair, 30 August 2026.
+   Measured cause: the layout is drawn for about 1450 pixels,
+   with steps at 1450 and 1120 and nothing in between. A
+   viewport near 1280 therefore keeps three columns in a space
+   that cannot hold them, so panels crowd and text is clipped.
+   Three fixes below: the fixed footer no longer covers the
+   content, a card grows with its own text, and a middle step
+   scales the interface between 1121 and 1320 pixels.
+   ============================================================ */
+
+/* 1. The footer sat on top of the content when its text wrapped */
+.app-footer{
+  height:auto; min-height:44px; padding:10px 22px;
+  flex-wrap:wrap; gap:4px 18px; line-height:1.4;
+}
+.app-shell{ padding-bottom:120px; }
+@media(max-width:1120px){ .app-shell{ padding-bottom:24px; } }
+
+/* 2. A card grows with its label instead of clipping it.
+      The height was fixed at 176px, so a three line label
+      such as I need assistance was cut off at the bottom. */
+.comm-card{
+  height:auto; min-height:150px; padding:16px 12px;
+  font-size:clamp(1rem,1.6vw,1.25rem);
+}
+.card-text{ max-width:100%; overflow-wrap:break-word; }
+.main-layout.family-mode .comm-card{ height:auto; min-height:190px; }
+
+/* 3. The missing step between the wide layout and the stacked one.
+      Bounded below at 1121 so the single column rules at 1120
+      keep working untouched. */
+@media(min-width:1121px) and (max-width:1320px){
+  body{ font-size:13px; }
+  .topbar{ min-height:76px; grid-template-columns:250px 1fr 290px; padding:12px 18px 10px; gap:14px; }
+  .brand img{ height:46px; width:46px; }
+  .brand-name{ font-size:1.5rem; }
+  .brand-sub{ font-size:.7rem; margin-top:4px; }
+  .mode-switcher{ min-width:0; max-width:none; }
+  .mode-btn{ height:46px; font-size:.85rem; gap:6px; }
+  .icon-btn{ height:38px; padding:0 10px; }
+  .switch{ width:54px; height:30px; }
+  .slider:after{ width:22px; height:22px; }
+  .switch input:checked+.slider:after{ left:28px; }
+  .suggestions-bar{ margin:12px 18px 10px; padding:12px 14px; grid-template-columns:200px 1fr; }
+  .suggestions-hint{ display:none; }
+  .suggestion-chip{ height:42px; font-size:.84rem; }
+  .main-layout{ grid-template-columns:320px minmax(400px,1fr) 300px; gap:14px; padding:0 18px 18px; }
+  .video-frame{ height:210px; margin:10px 12px 12px; }
+  .signal-card{ height:64px; grid-template-columns:44px 1fr 90px; }
+  .sig-icon{ width:38px; height:38px; font-size:1.1rem; }
+  .sig-val{ font-size:.92rem; }
+  .cards-grid{ grid-template-columns:repeat(3,1fr); gap:10px; padding:12px 14px 0; }
+  .comm-card{ min-height:132px; }
+  .card-icon-3d{ width:48px; height:48px; }
+  .phrase-display{ min-height:104px; padding:18px 70px 18px 20px; }
+  .phrase-text{ font-size:1.3rem; }
+  .action-btn{ height:62px; font-size:.88rem; }
+  .ethics-panel{ grid-template-columns:72px 1fr; padding:18px 16px; min-height:0; }
+  .ethics-shield{ font-size:3.2rem; }
+  .ethics-text{ line-height:1.6; }
+  .my-phrases-btn{ height:56px; }
+  .history-list{ max-height:240px; }
+}
