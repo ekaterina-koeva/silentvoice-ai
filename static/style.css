@@ -174,8 +174,8 @@ body:has(.mode-btn:nth-child(2).active) .comm-card{filter:saturate(.82)}
   .sig-icon{ width:38px; height:38px; font-size:1.1rem; }
   .sig-val{ font-size:.92rem; }
   .cards-grid{ grid-template-columns:repeat(3,1fr); gap:10px; padding:12px 14px 0; }
-  .comm-card{ min-height:132px; }
-  .card-icon-3d{ width:48px; height:48px; }
+  
+  
   .phrase-display{ min-height:104px; padding:18px 70px 18px 20px; }
   .phrase-text{ font-size:1.3rem; }
   .action-btn{ height:62px; font-size:.88rem; }
@@ -185,3 +185,48 @@ body:has(.mode-btn:nth-child(2).active) .comm-card{filter:saturate(.82)}
   .my-phrases-btn{ height:56px; }
   .history-list{ max-height:240px; }
 }
+
+/* 30 August 2026. Measured on a 1280 wide viewport, the eight cards
+   did not fit on screen together, so a person had to scroll while
+   the scan moved through cards they could not see. Card height and
+   type are reduced so the whole set stays in view at once. */
+.comm-card{
+  height:auto; min-height:104px; padding:12px 10px; gap:8px;
+  font-size:clamp(.85rem,.95vw,1rem); line-height:1.2;
+}
+.card-icon-3d{ width:38px; height:38px; }
+.card-text{ max-width:100%; overflow-wrap:break-word; }
+.cards-grid{ gap:10px; padding:12px 14px 0; }
+.main-layout.family-mode .comm-card{ height:auto; min-height:132px; font-size:1.15rem; }
+
+/* The notice was fixed to the bottom of the window and covered the
+   cards and the speak controls. It moves to the end of the page,
+   where it is still reachable but no longer sits over the interface. */
+.app-footer{
+  position:static; left:auto; right:auto; bottom:auto;
+  height:auto; min-height:0; margin:10px 28px 20px; padding:14px 20px;
+  flex-wrap:wrap; gap:6px 20px; line-height:1.5; font-size:.8rem;
+  border-radius:12px; box-shadow:none; background:rgba(5,13,30,.55);
+  color:#93a9c4;
+}
+.footer-left{ min-width:0; max-width:80ch; }
+.app-shell{ padding-bottom:0; }
+
+/* The suggestion chips are gone. What remains in that bar is the one
+   sentence that explains how a card is chosen, so the bar becomes a
+   single line of guidance above the cards. */
+.suggestions-bar{ grid-template-columns:1fr; padding:12px 18px; }
+.suggestions-label{ display:none; }
+.suggestions-hint{ display:block; border-left:0; padding-left:0; font-size:.88rem; }
+
+/* Single source for card size, 30 August 2026. Written last and with
+   enough weight to hold inside the media query as well, so the eight
+   cards stay in view together and the scan never moves to a card the
+   person cannot see. */
+.cards-grid .comm-card{
+  height:auto; min-height:96px; padding:10px 8px; gap:6px;
+  font-size:clamp(.8rem,.9vw,.95rem); line-height:1.18;
+}
+.cards-grid .card-icon-3d{ width:34px; height:34px; }
+.main-layout.family-mode .cards-grid .comm-card{ min-height:126px; font-size:1.1rem; }
+.main-layout.family-mode .cards-grid .card-icon-3d{ width:46px; height:46px; }
