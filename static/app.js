@@ -499,3 +499,43 @@ function setMode(mode, btn) {
   if(layout) layout.classList.toggle("family-mode",mode==="family");
 }
 
+
+// ── PROFILE PICKER ────────────────────────────────────
+// The profile is a setting, not a phrase. Five profiles standing in the scan
+// cycle would add five stops to every pass, which at 3.5 seconds a stop costs
+// 17.5 seconds before the person reaches a phrase. Instead one card opens the
+// picker, the picker takes over the grid, and the grid returns to phrases as
+// soon as a profile is chosen. Decided 1 September 2026.
+
+var svLoadCommunicationCards = loadCards;
+
+var SV_GEAR = '<svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gearg" x1="20%" y1="0%" x2="80%" y2="100%"><stop offset="0%" stop-color="#e2e8f0"/><stop offset="50%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#334155"/></linearGradient></defs><path d="M24 5 L32 5 L33 11 Q35.5 12 37.5 13.5 L43 11 L47 18 L42.5 22 Q43 24.5 42.5 27 L47 31 L43 38 L37.5 35.5 Q35.5 37 33 38 L32 44 L24 44 L23 38 Q20.5 37 18.5 35.5 L13 38 L9 31 L13.5 27 Q13 24.5 13.5 22 L9 18 L13 11 L18.5 13.5 Q20.5 12 23 11 Z" fill="url(#gearg)"/><circle cx="28" cy="24.5" r="7" fill="#0f172a" opacity="0.55"/><circle cx="28" cy="24.5" r="4.5" fill="#e2e8f0"/></svg>';
+
+loadCards = function () {
+  svLoadCommunicationCards();
+  var g = document.getElementById("cardsGrid");
+  if (!g) return;
+  g.insertAdjacentHTML("beforeend",
+    '<button class="comm-card cc7" onclick="svOpenProfilePicker()">' +
+    '<span class="card-icon-3d">' + SV_GEAR + '</span>' +
+    '<span class="card-text">Change profile</span></button>');
+};
+
+function svOpenProfilePicker() {
+  var cur = document.getElementById("profileSelect").value;
+  var g = document.getElementById("cardsGrid");
+  if (!g) return;
+  var html = PROFILES.map(function (p, i) {
+    return '<button class="comm-card cc' + i + '" onclick="svPickProfile(\'' + p.value + '\')">' +
+      '<span class="card-text">' + p.label + (p.value === cur ? " \u2713" : "") + '</span></button>';
+  }).join("");
+  html += '<button class="comm-card cc7" onclick="loadCards()">' +
+    '<span class="card-text">Cancel</span></button>';
+  g.innerHTML = html;
+}
+
+function svPickProfile(val) {
+  document.getElementById("profileSelect").value = val;
+  loadCards();
+  if (typeof renderProfileList === "function") renderProfileList();
+}
