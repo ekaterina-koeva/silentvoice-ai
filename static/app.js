@@ -165,16 +165,66 @@ let sessionStart = null, sessionTimer = null;
 document.addEventListener("DOMContentLoaded", () => {
   renderProfileList();
   loadCards();
-  startCamera();
+  // The camera no longer starts on its own. Asking for it the moment the page
+  // loads takes the decision away from the person in front of it. Changed
+  // 2 September 2026, closes S08.
+  stopCamera();
   // loadSuggestions(); chips removed 30 August 2026: they duplicated the cards and the scan never reached them
 });
 
 // ── CAMERA ────────────────────────────────────────────
+let cameraStream = null;
+
+// Stops the camera and releases every track, so the device light goes out and
+// nothing is being captured. Without keeping the stream there was no way to
+// stop it at all once it had started. Added 2 September 2026, closes S08.
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(function (t) { t.stop(); });
+    cameraStream = null;
+  }
+  var v = document.getElementById("videoFeed");
+  if (v) v.srcObject = null;
+  // No frames means onResults never runs again, so the tracker would keep
+  // showing whatever it saw last. Put it in the same state it uses for no
+  // face, so the scan pauses and the badges tell the truth.
+  var T = window.SVTracking;
+  if (T) {
+    T.faceVisible = false;
+    T.gaze = "NONE";
+    T.axis = null;
+    T.yaw = null;
+    if (typeof T.resetHold === "function") T.resetHold();
+  }
+  var g = document.getElementById("gazeStatus");
+  var b = document.getElementById("blinkStatus");
+  if (g) g.textContent = "CAMERA OFF";
+  if (b) b.textContent = "CAMERA OFF";
+  setCameraState(false);
+}
+
+function toggleCamera() {
+  if (cameraStream) stopCamera(); else startCamera();
+}
+
+// The badge and the button say which state the camera is actually in, rather
+// than showing LIVE whatever is happening.
+function setCameraState(on, message) {
+  var btn = document.getElementById("cameraToggle");
+  var label = document.getElementById("cameraBadgeLabel");
+  if (btn) btn.textContent = on ? "Stop camera" : "Start camera";
+  if (label) label.textContent = message || (on ? "LIVE" : "CAMERA OFF");
+}
+
 async function startCamera() {
+  if (cameraStream) return;
   try {
-    const s = await navigator.mediaDevices.getUserMedia({ video: true });
-    document.getElementById("videoFeed").srcObject = s;
-  } catch { }
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    document.getElementById("videoFeed").srcObject = cameraStream;
+    setCameraState(true);
+  } catch {
+    setCameraState(false, "CAMERA NOT AVAILABLE");
+  }
 }
 
 // ── SUGGESTIONS ───────────────────────────────────────

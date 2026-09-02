@@ -59,7 +59,8 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/></svg>
           LIVE CAMERA &amp; TRACKING
         </div>
-        <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+        <span class="live-badge"><span class="live-dot"></span><span id="cameraBadgeLabel">CAMERA OFF</span></span>
+        <button type="button" class="icon-btn" id="cameraToggle" onclick="toggleCamera()" aria-controls="videoFeed">Start camera</button>
       </div>
       <div class="video-frame">
         <video id="videoFeed" autoplay playsinline></video>
