@@ -221,9 +221,11 @@
     T.gaze = last;
     if (badgeG) badgeG.textContent = last;
 
-    // How long the current direction has been held without changing.
+    // How long the current direction has been held without changing. Only the
+    // two side directions count. A gaze at the centre selects nothing and moves
+    // nothing, so a count filling there would show progress that does not exist.
     var now = performance.now();
-    if (last === cand && candN >= DEBOUNCE && last !== "UNSURE") {
+    if (last === cand && candN >= DEBOUNCE && last !== "UNSURE" && last !== "CENTER") {
       if (holdStart === 0) holdStart = now;
       T.holdMs = now - holdStart;
     } else {
