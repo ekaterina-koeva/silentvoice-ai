@@ -77,7 +77,7 @@ body:before{
 .profile-panel{padding:16px}.custom-select{width:100%;height:44px;margin:10px 0 8px;border-radius:12px;background:rgba(8,20,42,.95);border:1px solid rgba(120,180,255,.22);color:#fff;padding:0 14px;font-weight:800;outline:none}.profile-list{border:1px solid rgba(120,180,255,.1);border-radius:14px;overflow:hidden;background:rgba(0,0,0,.08)}.profile-item{display:flex;align-items:center;gap:10px;min-height:30px;padding:6px 12px;color:#d9eaff;font-size:.82rem;cursor:pointer;position:relative}.profile-item:hover,.profile-item.active{background:rgba(22,213,255,.08);color:#fff}.profile-item .check{margin-left:auto;color:var(--cyan);font-weight:900}.helper-text{margin-top:10px;color:var(--muted);font-size:.8rem;line-height:1.55}.link-cyan{color:var(--cyan);text-decoration:none}.my-phrases-btn{height:64px;border-radius:16px;border:1px solid rgba(22,213,255,.45);background:linear-gradient(135deg,rgba(20,65,132,.48),rgba(7,18,37,.8));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px;box-shadow:0 0 28px rgba(22,213,255,.08);font-family:inherit;cursor:pointer}.mph-left{display:flex;align-items:center;gap:12px}.mph-star{font-size:1.55rem;color:var(--cyan);filter:drop-shadow(0 0 10px var(--cyan))}.mph-title{font-size:1.05rem;font-weight:900}.mph-sub{font-size:.78rem;color:var(--muted)}.mph-arrow{font-size:2rem;color:var(--cyan)}
 
 /* CARDS */
-.cards-panel{padding-bottom:18px}.edit-cards-btn{height:40px;padding:0 17px;border-radius:12px;border:1px solid rgba(22,213,255,.55);background:rgba(22,213,255,.07);color:#c9f6ff;font-weight:900;font-family:inherit;cursor:pointer;box-shadow:0 0 18px rgba(22,213,255,.1)}.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:16px 18px 0}.comm-card{height:176px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(145deg,rgba(20,42,84,.8),rgba(7,18,37,.88));color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-family:inherit;font-weight:900;font-size:1.25rem;line-height:1.2;cursor:pointer;transition:.22s;box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}.comm-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--accent,#16d5ff);box-shadow:0 0 18px var(--accent,#16d5ff)}.comm-card:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 12%,rgba(255,255,255,.13),transparent 40%);pointer-events:none}.comm-card:hover{transform:translateY(-4px);box-shadow:0 18px 42px rgba(0,0,0,.38),0 0 28px rgba(22,213,255,.12)}.comm-card.selected{outline:2px solid var(--cyan);box-shadow:0 0 0 4px rgba(22,213,255,.1),0 0 38px rgba(22,213,255,.24)}.card-icon-3d{width:68px;height:68px;display:block;filter:drop-shadow(0 14px 18px rgba(0,0,0,.36))}.card-text{position:relative;z-index:2;max-width:130px;text-align:center;text-shadow:0 2px 12px rgba(0,0,0,.35)}.cc0{--accent:#17c9ff;background:linear-gradient(145deg,rgba(11,67,120,.9),rgba(4,22,50,.92))}.cc1{--accent:#8b5cf6;background:linear-gradient(145deg,rgba(63,24,126,.9),rgba(18,10,48,.92))}.cc2{--accent:#ffbd3d;background:linear-gradient(145deg,rgba(111,75,11,.86),rgba(33,23,9,.9))}.cc3{--accent:#79e62d;background:linear-gradient(145deg,rgba(55,110,24,.82),rgba(15,42,22,.9))}.cc4{--accent:#ff4f4f;background:linear-gradient(145deg,rgba(128,36,36,.9),rgba(43,10,16,.9))}.cc5{--accent:#ffd23f;background:linear-gradient(145deg,rgba(120,92,20,.86),rgba(45,31,9,.92))}.cc6{--accent:#13e0ac;background:linear-gradient(145deg,rgba(20,112,91,.82),rgba(7,48,44,.9))}.cc7{--accent:#ff4a91;background:linear-gradient(145deg,rgba(118,24,71,.82),rgba(45,8,34,.92))}
+.cards-panel{padding-bottom:18px}.edit-cards-btn{height:40px;padding:0 17px;border-radius:12px;border:1px solid rgba(22,213,255,.55);background:rgba(22,213,255,.07);color:#c9f6ff;font-weight:900;font-family:inherit;cursor:pointer;box-shadow:0 0 18px rgba(22,213,255,.1)}.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:16px 18px 0}.comm-card{border-radius:16px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(145deg,rgba(20,42,84,.8),rgba(7,18,37,.88));color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-family:inherit;font-weight:900;font-size:1.25rem;line-height:1.2;cursor:pointer;transition:.22s;box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}.comm-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--accent,#16d5ff);box-shadow:0 0 18px var(--accent,#16d5ff)}.comm-card:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 12%,rgba(255,255,255,.13),transparent 40%);pointer-events:none}.comm-card:hover{transform:translateY(-4px);box-shadow:0 18px 42px rgba(0,0,0,.38),0 0 28px rgba(22,213,255,.12)}.comm-card.selected{outline:2px solid var(--cyan);box-shadow:0 0 0 4px rgba(22,213,255,.1),0 0 38px rgba(22,213,255,.24)}.card-icon-3d{width:68px;height:68px;display:block;filter:drop-shadow(0 14px 18px rgba(0,0,0,.36))}.card-text{position:relative;z-index:2;max-width:130px;text-align:center;text-shadow:0 2px 12px rgba(0,0,0,.35)}.cc0{--accent:#17c9ff;background:linear-gradient(145deg,rgba(11,67,120,.9),rgba(4,22,50,.92))}.cc1{--accent:#8b5cf6;background:linear-gradient(145deg,rgba(63,24,126,.9),rgba(18,10,48,.92))}.cc2{--accent:#ffbd3d;background:linear-gradient(145deg,rgba(111,75,11,.86),rgba(33,23,9,.9))}.cc3{--accent:#79e62d;background:linear-gradient(145deg,rgba(55,110,24,.82),rgba(15,42,22,.9))}.cc4{--accent:#ff4f4f;background:linear-gradient(145deg,rgba(128,36,36,.9),rgba(43,10,16,.9))}.cc5{--accent:#ffd23f;background:linear-gradient(145deg,rgba(120,92,20,.86),rgba(45,31,9,.92))}.cc6{--accent:#13e0ac;background:linear-gradient(145deg,rgba(20,112,91,.82),rgba(7,48,44,.9))}.cc7{--accent:#ff4a91;background:linear-gradient(145deg,rgba(118,24,71,.82),rgba(45,8,34,.92))}
 
 /* PHRASE */
 .phrase-panel{padding:18px;margin-top:0}.phrase-label,.kw-label{text-transform:uppercase;letter-spacing:.04em;color:#b5c9e5;font-size:.74rem;font-weight:900}.phrase-display{margin-top:9px;min-height:130px;border-radius:16px;border:1px solid rgba(22,213,255,.46);background:radial-gradient(circle at right,rgba(22,213,255,.08),transparent 34%),linear-gradient(135deg,rgba(9,37,78,.9),rgba(6,18,40,.9));display:flex;align-items:center;position:relative;padding:24px 96px 24px 28px;box-shadow:inset 0 0 50px rgba(22,213,255,.05),0 0 28px rgba(22,213,255,.08)}.phrase-text{font-size:1.75rem;font-weight:850;letter-spacing:-.035em;line-height:1.25}.phrase-cursor{width:2px;height:32px;background:var(--cyan);display:inline-block;animation:blink 1s step-end infinite;margin-left:3px}@keyframes blink{50%{opacity:0}}.phrase-dots{position:absolute;right:28px;top:50%;transform:translateY(-50%);display:flex;gap:9px}.phrase-dots span{width:11px;height:11px;border-radius:50%;background:#235192}.phrase-dots .on{background:var(--cyan);box-shadow:0 0 16px var(--cyan)}.keywords-display{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px;min-height:30px}.keyword-tag{padding:7px 14px;border-radius:999px;border:1px solid rgba(22,213,255,.24);background:rgba(22,213,255,.07);color:#c5f8ff;font-weight:700;font-size:.82rem}.action-row{display:grid;grid-template-columns:1.35fr 1fr 1fr .82fr;gap:12px;margin-top:16px}.action-btn{height:72px;border-radius:14px;border:1px solid rgba(255,255,255,.12);color:#fff;font-family:inherit;font-weight:900;font-size:.98rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:.2s}.action-btn:hover{transform:translateY(-2px)}.btn-sub{font-size:.72rem;color:rgba(255,255,255,.78);font-weight:500}.btn-generate{background:linear-gradient(135deg,#165eff,#10cfff);box-shadow:0 0 28px rgba(22,213,255,.18)}.btn-speak{background:linear-gradient(135deg,#087f73,#0ba98d)}.btn-repeat{background:linear-gradient(135deg,#6322a9,#8b36e8)}.btn-clear{background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.03))}
@@ -93,7 +93,7 @@ body:before{
 body:has(.mode-btn:nth-child(2).active) .comm-card{filter:saturate(.82)}
 
 /* RESPONSIVE */
-@media(max-width:1450px){.topbar{grid-template-columns:300px 1fr 330px}.mode-switcher{min-width:500px}.main-layout{grid-template-columns:360px minmax(520px,1fr) 340px}.cards-grid{gap:10px}.comm-card{height:150px}.card-icon-3d{width:56px;height:56px}.phrase-text{font-size:1.55rem}}
+@media(max-width:1450px){.topbar{grid-template-columns:300px 1fr 330px}.mode-switcher{min-width:500px}.main-layout{grid-template-columns:360px minmax(520px,1fr) 340px}.cards-grid{gap:10px}.phrase-text{font-size:1.55rem}}
 @media(max-width:1120px){.topbar{grid-template-columns:1fr;gap:12px;position:relative}.mode-switcher{justify-self:stretch;min-width:0}.topbar-right{justify-self:stretch;justify-content:space-between}.suggestions-bar{grid-template-columns:1fr}.suggestions-chips{grid-template-columns:repeat(2,1fr)}.main-layout{grid-template-columns:1fr}.cards-grid{grid-template-columns:repeat(2,1fr)}.app-footer{position:relative;left:auto;right:auto;bottom:auto;margin:10px 18px}.ethics-panel{grid-template-columns:90px 1fr}}
 @media(max-width:640px){.topbar{padding:16px}.brand-name{font-size:1.45rem}.mode-switcher{grid-template-columns:1fr}.suggestions-bar{margin:14px 14px;padding:14px}.suggestions-chips{grid-template-columns:1fr}.main-layout{padding:0 14px 16px}.cards-grid{grid-template-columns:1fr}.action-row{grid-template-columns:1fr}.signal-card{grid-template-columns:48px 1fr}.gaze-dots,.waveform,.head-arrows{display:none}.phrase-display{padding:18px}.phrase-dots{display:none}}
 
@@ -140,15 +140,10 @@ body:has(.mode-btn:nth-child(2).active) .comm-card{filter:saturate(.82)}
 .app-shell{ padding-bottom:120px; }
 @media(max-width:1120px){ .app-shell{ padding-bottom:24px; } }
 
-/* 2. A card grows with its label instead of clipping it.
-      The height was fixed at 176px, so a three line label
-      such as I need assistance was cut off at the bottom. */
-.comm-card{
-  height:auto; min-height:150px; padding:16px 12px;
-  font-size:clamp(1rem,1.6vw,1.25rem);
-}
-.card-text{ max-width:100%; overflow-wrap:break-word; }
-.main-layout.family-mode .comm-card{ height:auto; min-height:190px; }
+/* 2. Superseded. Card size is set once, in the single source block at
+      the end of this file. The rules that stood here were overridden by
+      it and only made the file harder to read. Removed 2 September 2026,
+      with no change to any value that was actually in force. */
 
 /* 3. The missing step between the wide layout and the stacked one.
       Bounded below at 1121 so the single column rules at 1120
@@ -186,18 +181,10 @@ body:has(.mode-btn:nth-child(2).active) .comm-card{filter:saturate(.82)}
   .history-list{ max-height:240px; }
 }
 
-/* 30 August 2026. Measured on a 1280 wide viewport, the eight cards
-   did not fit on screen together, so a person had to scroll while
-   the scan moved through cards they could not see. Card height and
-   type are reduced so the whole set stays in view at once. */
-.comm-card{
-  height:auto; min-height:104px; padding:12px 10px; gap:8px;
-  font-size:clamp(.85rem,.95vw,1rem); line-height:1.2;
-}
-.card-icon-3d{ width:38px; height:38px; }
-.card-text{ max-width:100%; overflow-wrap:break-word; }
-.cards-grid{ gap:10px; padding:12px 14px 0; }
-.main-layout.family-mode .comm-card{ height:auto; min-height:132px; font-size:1.15rem; }
+/* Superseded, same reason as block 2 above. These rules were written on
+   30 August and were themselves overridden by the single source block at
+   the end of the file. Removed 2 September 2026, with no change to any
+   value that was actually in force. */
 
 /* The notice was fixed to the bottom of the window and covered the
    cards and the speak controls. It moves to the end of the page,
