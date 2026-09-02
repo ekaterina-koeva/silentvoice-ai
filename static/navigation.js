@@ -32,7 +32,7 @@
   const SCAN_INTERVAL = 3500; // ms each card stays highlighted
   const DWELL_MS = 2000;      // held gaze needed to confirm a selection
   const ADVANCE_MS = 700;     // held gaze needed to move to the next card
-  const ARM_MS = 2000;        // further hold, after the move, that arms the alert
+  const ARM_MS = 3200;        // further hold, after the move, that arms the alert
 
   let scanIndex = -1;
   let scanning = false;
