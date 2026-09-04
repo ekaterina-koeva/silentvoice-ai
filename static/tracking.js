@@ -244,7 +244,7 @@
     window.SVTracking.loadProfile();
 
     var fm = new FaceMesh({
-      locateFile: function (f) { return "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/" + f; }
+      locateFile: function (f) { return "/static/vendor/face_mesh/" + f; }
     });
     fm.setOptions({
       maxNumFaces: 1, refineLandmarks: true,

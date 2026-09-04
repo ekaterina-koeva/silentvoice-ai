@@ -71,11 +71,11 @@
   <textarea id="out" readonly></textarea>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js"
+<script src="/static/vendor/face_mesh/face_mesh.js"
         onerror="window.__mpFail = 'the MediaPipe script did not download'"></script>
 <script>
 (function () {
-  var MP_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/";
+  var MP_BASE = "/static/vendor/face_mesh/";
 
   var LEFT_IRIS = 468, RIGHT_IRIS = 473;
   var L_OUT = 33, L_IN = 133, R_IN = 362, R_OUT = 263;
