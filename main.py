@@ -174,6 +174,50 @@ app = FastAPI(
 # route means nothing while the same file can be fetched directly.
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
+# Security headers.
+#
+# These are the headers that do not depend on how the interface is built, so
+# they can be set in one place without touching a single page. The content
+# security policy is deliberately not here. It needs the inline handlers in
+# app/index.html to be migrated first, and that work waits until after the
+# first round of testing.
+#
+# camera=(self) has to stay. The interface cannot work without the camera, and
+# a permissions policy that omitted it would switch gaze selection off with no
+# message on the screen. The microphone is closed on purpose. Nothing in the
+# current code records audio, and when partner aware mode arrives this line has
+# to be opened deliberately rather than being open in advance.
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "X-Frame-Options": "DENY",
+    "Permissions-Policy": "camera=(self), microphone=(), geolocation=(), payment=(), usb=()",
+    "Cross-Origin-Opener-Policy": "same-origin",
+}
+
+
+def _is_https(request: Request) -> bool:
+    forwarded = request.headers.get("x-forwarded-proto", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip() == "https"
+    return request.url.scheme == "https"
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    for name, value in SECURITY_HEADERS.items():
+        response.headers.setdefault(name, value)
+    # Strict transport security is only sent over https. Sending it from a
+    # local development server would make the browser remember the rule for
+    # localhost and interfere with other work on the same machine.
+    if _is_https(request):
+        response.headers.setdefault(
+            "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+        )
+    return response
+
 # Basic authentication is accepted so that a script or a test can reach the API
 # without a browser. It is never used to challenge, because a challenge makes
 # the browser show its own grey dialog on top of the interface.
