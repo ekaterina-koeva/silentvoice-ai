@@ -1,0 +1,26 @@
+Inter, self hosted
+
+Downloaded 5 September 2026.
+
+Font files, verified byte for byte against the bytes served on the date above:
+  https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2      latin
+  https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7SUc.woff2   latin-ext
+  https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa0ZL7SUc.woff2   cyrillic
+  https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7SUc.woff2   cyrillic-ext
+
+The addresses were read from the stylesheet returned by
+  https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap
+
+The v20 segment is a Google Fonts delivery path. It is not a released version number of Inter.
+
+Licence file, source stated by the person who downloaded it, not independently verified:
+  https://raw.githubusercontent.com/google/fonts/main/ofl/inter/OFL.txt
+
+Four character sets are kept: latin, latin-ext, cyrillic, cyrillic-ext.
+The greek, greek-ext and vietnamese sets were downloaded and deliberately not included,
+because no surface of this application renders those scripts. A character outside the
+included ranges falls back to a system font.
+
+The files are variable fonts covering the weight axis from 100 to 900 in one file per set.
+The interface uses 400, 500, 600, 700, 800, 850 and 900. No italic is used anywhere,
+so no italic file is included.
