@@ -139,7 +139,7 @@
 
   function onResults(res) {
     var badgeG = document.getElementById("gazeStatus");
-    var badgeB = document.getElementById("blinkStatus");
+    var badgeB = document.getElementById("holdStatus");
     var T = window.SVTracking;
 
     if (!res.multiFaceLandmarks || !res.multiFaceLandmarks.length) {

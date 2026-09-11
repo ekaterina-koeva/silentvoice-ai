@@ -197,7 +197,7 @@ function stopCamera() {
     if (typeof T.resetHold === "function") T.resetHold();
   }
   var g = document.getElementById("gazeStatus");
-  var b = document.getElementById("blinkStatus");
+  var b = document.getElementById("holdStatus");
   if (g) g.textContent = "CAMERA OFF";
   if (b) b.textContent = "CAMERA OFF";
   setCameraState(false);
