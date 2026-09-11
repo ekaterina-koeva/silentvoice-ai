@@ -1,4 +1,5 @@
 .partner-aware-panel {
+  padding: 16px 18px;
   margin-bottom: 16px;
 }
 
@@ -71,7 +72,14 @@
    words and loses the end of a sentence. These rules let the card grow
    downwards and wrap instead of cutting, because a reply that cannot be read
    in full cannot be chosen deliberately. */
+/* A suggestion is temporary and comes from outside, so it should not look like
+   one of the permanent cards. A lighter surface separates the two at a glance
+   and gives the mode icon something to read against. The saturation filter that
+   style.css applies to every .comm-card is undone here for the same reason. */
 .partner-aware-card {
+  background: linear-gradient(145deg, rgba(64, 96, 158, 0.92), rgba(30, 52, 96, 0.94));
+  border-color: rgba(255, 255, 255, 0.22);
+  filter: none;
   min-height: 96px;
   height: auto;
   padding: 14px 16px 14px 22px;
@@ -88,10 +96,15 @@
 
 
 
+/* The mode icon. Sized to match .cards-grid .card-icon-3d, which is 34px, so
+   a suggestion reads as the same kind of thing as a communication card. */
 .partner-aware-mark {
   display: block;
+  width: 34px;
+  height: 34px;
   margin-bottom: 6px;
-  font-size: 22px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.34));
 }
 
 @media (max-width: 900px) {

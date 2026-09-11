@@ -1,6 +1,41 @@
 (function () {
   "use strict";
 
+  // The mode icon. A PNG for now, so it can be judged at the real size. The
+  // other icons in this interface are inline SVG, so this one is softer than
+  // they are and is expected to be redrawn as SVG.
+  // Drawn for the size it is shown at. The first attempt was a 1254px raster
+  // reduced to 34px, where every shape fell below two pixels and the whole
+  // thing became one smudge. Here nothing is thinner than five units out of
+  // 56, so it survives the reduction. The partner speaks on the right and the
+  // bubble points left, towards the person who chooses.
+  var ICON =
+    '<svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs>' +
+    '<linearGradient id="pal" x1="10%" y1="0%" x2="90%" y2="100%">' +
+    '<stop offset="0%" stop-color="#e8f0ff"/><stop offset="100%" stop-color="#9dbcf8"/>' +
+    '</linearGradient>' +
+    '<linearGradient id="par" x1="10%" y1="0%" x2="90%" y2="100%">' +
+    '<stop offset="0%" stop-color="#8fb2f2"/><stop offset="100%" stop-color="#31508f"/>' +
+    '</linearGradient>' +
+    '</defs>' +
+    '<path d="M20 15 Q36 15 36 24 Q36 33 26 33 L23 33 L14 39 L16.5 32.5 Q10 30 10 24 Q10 15 20 15 Z" fill="#ffffff"/>' +
+    '<circle cx="16" cy="24" r="2.9" fill="#2b4374"/>' +
+    '<circle cx="23" cy="24" r="2.9" fill="#2b4374"/>' +
+    '<circle cx="30" cy="24" r="2.9" fill="#2b4374"/>' +
+    '<circle cx="14" cy="43" r="7" fill="url(#pal)"/>' +
+    '<path d="M2.5 56 Q2.5 46.5 14 46.5 Q25.5 46.5 25.5 56 Z" fill="url(#pal)"/>' +
+    '<circle cx="42" cy="43" r="7" fill="url(#par)"/>' +
+    '<path d="M30.5 56 Q30.5 46.5 42 46.5 Q53.5 46.5 53.5 56 Z" fill="url(#par)"/>' +
+    '</svg>';
+
+  function iconNode() {
+    var span = document.createElement("span");
+    span.className = "partner-aware-mark";
+    span.innerHTML = ICON;
+    return span;
+  }
+
   var state = {
     enabled: false
   };
@@ -146,9 +181,7 @@
       button.type = "button";
       button.className = "comm-card partner-aware-card";
 
-      var mark = document.createElement("span");
-      mark.className = "partner-aware-mark";
-      mark.textContent = "✦";
+      var mark = iconNode();
 
       var label = document.createElement("span");
       label.className = "card-text";
