@@ -32,7 +32,8 @@
   const SCAN_INTERVAL = 3500; // ms each card stays highlighted
   const DWELL_MS = 2000;      // held gaze needed to confirm a selection
   const ADVANCE_MS = 700;     // held gaze needed to move to the next card
-  const ARM_MS = 3200;        // further hold, after the move, that arms the alert
+  const ARM_MS = 3200;
+  const CENTRE_CLEAR_MS = 1000; // settled gaze in the middle before a hold may arm        // further hold, after the move, that arms the alert
 
   let scanIndex = -1;
   let scanning = false;
@@ -41,6 +42,8 @@
   let movedThisHold = false;
   let armedThisHold = false;
   let holding = false;
+  let centreSince = 0;
+  let armEligible = false;
 
   function cards() {
     return Array.from(document.querySelectorAll(".comm-card"));
@@ -168,6 +171,17 @@
       const other = moveSide();
       const g = t.gaze;
 
+      // Asking for assistance must not be a continuation of moving between
+      // cards. The arming hold is allowed only after the gaze has come back and
+      // settled in the middle. Anything that is not a settled CENTER reading,
+      // including UNSURE, withdraws that permission.
+      if (g === "CENTER") {
+        if (!centreSince) centreSince = Date.now();
+        if (Date.now() - centreSince >= CENTRE_CLEAR_MS) armEligible = true;
+      } else {
+        centreSince = 0;
+      }
+
       // The hold that moves to the next card is released as soon as the gaze
       // comes away from that side, so one hold moves exactly one card. The same
       // release rearms the alert gesture, so one continuous hold can arm once.
@@ -199,7 +213,7 @@
           movedThisHold = true;
           resetHold();
           moveNow();
-        } else if (movedThisHold && !armedThisHold) {
+        } else if (movedThisHold && !armedThisHold && armEligible) {
           // The move has already happened and the gaze has stayed. The scan is
           // paused here, because its own step resets the hold and would wipe
           // out the count underneath the person. The bar fills so the hold can
@@ -209,6 +223,8 @@
           armProgress((t.holdMs / ARM_MS) * 100);
           if (t.holdMs >= ARM_MS) {
             armedThisHold = true;
+            armEligible = false;
+            centreSince = 0;
             resetHold();
             armProgress(0);
             resumeScan();
