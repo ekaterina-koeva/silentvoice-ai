@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 from cards.phrases import COMMUNICATION_CARDS, PROFILE_NAMES
 from ai.phrase_gen import generate_phrase
+from ai.partner_aware import MAX_TRANSCRIPT_CHARS, generate_partner_replies
 
 # Access control.
 #
@@ -324,6 +325,10 @@ RATE_LIMIT_WINDOW_SECONDS = 60
 
 _generate_calls: dict[str, list[float]] = {}
 
+# Partner-Aware gets its own counter. Sharing one with /generate would mean
+# that using ordinary phrase generation eats the allowance for reply suggestions.
+_partner_calls: dict[str, list[float]] = {}
+
 
 def _validate_keywords(keywords: list[str]) -> None:
     if not keywords:
@@ -352,6 +357,23 @@ def _check_rate_limit(client_ip: str) -> None:
         )
     recent.append(now)
     _generate_calls[client_ip] = recent
+
+
+class PartnerReplyRequest(BaseModel):
+    transcript: str
+
+
+def _check_partner_rate_limit(client_ip: str) -> None:
+    now = time.monotonic()
+    window_start = now - RATE_LIMIT_WINDOW_SECONDS
+    recent = [t for t in _partner_calls.get(client_ip, []) if t > window_start]
+    if len(recent) >= RATE_LIMIT_REQUESTS:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many reply suggestion requests. Please wait a moment.",
+        )
+    recent.append(now)
+    _partner_calls[client_ip] = recent
 
 
 class PhraseRequest(BaseModel):
@@ -623,6 +645,25 @@ def generate(request: PhraseRequest, http_request: Request):
     _check_rate_limit(_client_address(http_request))
     phrase = generate_phrase(request.keywords)
     return {"phrase": phrase, "profile": request.profile}
+
+
+@app.post("/partner-aware/replies", dependencies=[Depends(require_access)])
+def partner_replies(request: PartnerReplyRequest, http_request: Request):
+    """Reply suggestions from what a conversation partner said.
+
+    An empty list is a valid answer. Remote reply generation must not affect
+    ordinary communication when suggestions are unavailable.
+    """
+    text = (request.transcript or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="A transcript is required.")
+    if len(text) > MAX_TRANSCRIPT_CHARS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"The transcript must be {MAX_TRANSCRIPT_CHARS} characters or fewer.",
+        )
+    _check_partner_rate_limit(_client_address(http_request))
+    return {"suggestions": generate_partner_replies(text)}
 
 
 @app.post("/speak", dependencies=[Depends(require_access)])
