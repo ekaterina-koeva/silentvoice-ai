@@ -159,6 +159,7 @@
       ".sv-cal-panel button{height:44px;padding:0 16px;margin-right:8px;border-radius:12px;font-family:inherit;" +
       "font-weight:800;cursor:pointer;color:#c5f8ff;background:rgba(22,213,255,.08);border:1px solid rgba(22,213,255,.42)}" +
       ".sv-cal-panel button.ghost{color:#9cb0ca;background:transparent;border-color:rgba(156,176,202,.35)}" +
+      ".sv-cal-panel button[disabled]{opacity:.45;cursor:not-allowed}" +
       "#svCalOverlay{position:fixed;inset:0;z-index:9999;background:#05101f;color:#eaf3ff;" +
       "font-family:Inter,'Segoe UI',Arial,sans-serif;display:flex;align-items:center;justify-content:center}" +
       // The class is prefixed on purpose. A plain name such as card already
@@ -308,7 +309,8 @@
   function fail(out) {
     screen(
       "<h2>Calibration did not pass</h2>" +
-      "<p>" + (out.reason === "head" ? "Your head moved between the dots." :
+      "<p>" + (!cameraLive() ? "The camera was turned off during the run." :
+               out.reason === "head" ? "Your head moved between the dots." :
                out.reason === "gap" ? "Looking left, at the middle and right did not come out different enough to tell apart." :
                out.reason === "order" ? "The three looks did not line up in a row." :
                "The camera did not see your face for long enough.") + "</p>" +
@@ -345,6 +347,20 @@
 
   // ---- the panel under the signal cards -----------------------------------
 
+  // Whether a camera picture is actually arriving. SVTracking.ready only says
+  // that the tracking module started, and it is never set back to false, so it
+  // cannot tell a running camera from a stopped one. The video element can: app.js
+  // clears srcObject in stopCamera and sets it in startCamera.
+  function cameraLive() {
+    var v = document.getElementById("videoFeed");
+    if (!v || !v.srcObject || !v.srcObject.getVideoTracks) return false;
+    var tracks = v.srcObject.getVideoTracks();
+    for (var i = 0; i < tracks.length; i++) {
+      if (tracks[i].readyState === "live") return true;
+    }
+    return false;
+  }
+
   function sideWord(d) { return d === "LEFT" ? "left" : "right"; }
   function otherOf(d) { return d === "LEFT" ? "RIGHT" : "LEFT"; }
 
@@ -368,6 +384,7 @@
     if (!box) return;
     var T = window.SVTracking;
     var p = T && T.profile;
+    var camReadyNow = cameraLive() && !!(T && T.ready);
     setHints(T && T.calibrated ? p : null);
 
     if (T && T.calibrated && p) {
@@ -379,8 +396,10 @@
         ' to select the highlighted card, and to the ' + sideWord(otherOf(p.selectDirection)) +
         ' to move to the next card.<br>' +
         "Calibrated " + when + ". This applies to the seat and the distance used then. " +
-        "If you move away or turn, selection pauses and the panel above says POSITION CHANGED.</div>" +
-        '<button id="svCalRe">Calibrate again</button>' +
+        "If you move away or turn, selection pauses and the panel above says POSITION CHANGED." +
+        (camReadyNow ? "" : "<br><br>The camera is off. Calibrating again cannot start until the camera is on.") +
+        "</div>" +
+        '<button id="svCalRe"' + (camReadyNow ? '' : ' disabled') + '>Calibrate again</button>' +
         '<button class="ghost" id="svCalSwap">Swap the sides</button>' +
         '<button class="ghost" id="svCalOff">Turn off</button>';
       document.getElementById("svCalRe").addEventListener("click", start);
@@ -395,22 +414,26 @@
         renderPanel();
       });
     } else {
+      var camReady = cameraLive() && !!(T && T.ready);
       box.innerHTML =
         '<div class="t">Gaze selection</div>' +
         '<div class="s">Off until this device has learnt how you look left, at the middle and right. ' +
         "Until then, cards are selected by touch or pointer.<br><br>" +
+        (camReady ? "" :
+          "The camera is off, so setting up cannot start. Turn the camera on, wait for the picture to " +
+          "appear, and this button becomes available.<br><br>") +
         "Setting it up takes about half a minute. Three dots appear one at a time and you look at each " +
         "one until it disappears. Keep your head still and move only your eyes. You can stop at any " +
         "time, and nothing is saved unless the result is good enough to rely on.</div>" +
-        '<button id="svCalStart">Set up gaze selection</button>';
+        '<button id="svCalStart"' + (camReady ? '' : ' disabled') + '>Set up gaze selection</button>';
       document.getElementById("svCalStart").addEventListener("click", start);
     }
   }
 
   function start() {
     if (running) return;
-    if (!window.SVTracking || !window.SVTracking.ready) {
-      alert("The camera tracking is not running yet. Give it a moment and try again.");
+    if (!cameraLive() || !window.SVTracking || !window.SVTracking.ready) {
+      alert("The camera is off, or the picture has not started yet. Turn the camera on, wait for the picture to appear, then set up gaze selection.");
       return;
     }
     style();
@@ -433,11 +456,11 @@
     build();
     // The profile is loaded by tracking.js when it starts, which may be after
     // this file runs, so the panel is drawn again once tracking is up.
-    var tries = 0;
-    var iv = setInterval(function () {
-      tries++;
-      if ((window.SVTracking && window.SVTracking.ready) || tries > 40) {
-        clearInterval(iv);
+    var lastReady = null;
+    setInterval(function () {
+      var now = cameraLive() && !!(window.SVTracking && window.SVTracking.ready);
+      if (now !== lastReady) {
+        lastReady = now;
         renderPanel();
       }
     }, 500);
