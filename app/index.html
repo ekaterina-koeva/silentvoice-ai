@@ -6,6 +6,7 @@
   <title>SilentVoice AI | Communication Without Limits</title>
   <link rel="stylesheet" href="/static/vendor/inter/inter.css">
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/partner_aware.css">
 </head>
 <body>
 <div class="app-shell">
@@ -138,6 +139,55 @@
       <div id="cardsGrid" class="cards-grid"></div>
     </div>
 
+    <div class="panel partner-aware-panel" id="partnerAwarePanel" data-state="off">
+      <div class="partner-aware-head">
+        <div>
+          <div class="phrase-label">Partner-Aware Mode</div>
+          <div class="partner-aware-sub">
+            Optional reply suggestions based on what a conversation partner says.
+            Microphone capture is not connected in this build.
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="partner-aware-toggle"
+          id="partnerAwareToggle"
+          aria-pressed="false">
+          Turn on
+        </button>
+      </div>
+
+      <div class="partner-aware-controls" id="partnerAwareControls" hidden>
+        <button
+          type="button"
+          class="partner-aware-listen"
+          id="partnerAwareListen">
+          Listen to partner
+        </button>
+
+        <span
+          class="partner-aware-status"
+          id="partnerAwareStatus"
+          role="status"
+          aria-live="polite">
+          Ready
+        </span>
+
+        <button
+          type="button"
+          class="partner-aware-cancel"
+          id="partnerAwareCancel">
+          Cancel
+        </button>
+      </div>
+
+      <div
+        class="partner-aware-suggestions"
+        id="partnerAwareSuggestions"
+        aria-live="polite"></div>
+    </div>
+
     <div class="panel phrase-panel">
       <div class="phrase-label">Selected / Generated Phrase</div>
       <div class="phrase-display">
@@ -255,6 +305,7 @@
 </div><!-- /app-shell -->
 
 <script src="/static/app.js"></script>
+<script src="/static/partner_aware.js"></script>
   <script src="/static/voice.js"></script>
 <script src="/static/vendor/face_mesh/face_mesh.js"></script>
 <script src="/static/tracking.js"></script>
