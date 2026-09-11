@@ -66,9 +66,27 @@
   display: none;
 }
 
+/* A suggestion is a sentence, not a label. The ordinary card rules cap the
+   text at 130px and clip whatever does not fit, which is safe for one or two
+   words and loses the end of a sentence. These rules let the card grow
+   downwards and wrap instead of cutting, because a reply that cannot be read
+   in full cannot be chosen deliberately. */
 .partner-aware-card {
   min-height: 96px;
+  height: auto;
+  padding: 14px 16px 14px 22px;
+  overflow: visible;
+  font-size: 1.05rem;
 }
+
+.partner-aware-card .card-text {
+  max-width: none;
+  width: 100%;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+
 
 .partner-aware-mark {
   display: block;
