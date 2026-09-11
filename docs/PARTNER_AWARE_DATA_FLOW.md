@@ -95,6 +95,25 @@ different processor, under different terms from the transcription step. The part
 words are sent to the reply generation provider. Anywhere this feature is described,
 both transfers are named, not just the first.
 
+**Reply generation provider: OpenAI, model `gpt-4o-mini`.**
+
+The application uses the Chat Completions API with `store=False`. The Responses API
+was not selected for this path because its application state is retained for thirty
+days by default unless a different eligible retention configuration applies.
+
+OpenAI states that API data is not used to train or improve its models by default
+unless the customer explicitly opts in. This project has not opted in.
+
+This does not mean zero retention. Under the standard API configuration, abuse
+monitoring logs may contain prompts and responses and may be retained for up to
+thirty days, subject to OpenAI's applicable legal, safety and service terms. Zero Data
+Retention requires separate eligibility and approval and is not enabled for this
+project.
+
+The consequence has to be described plainly to a partner: the SilentVoice application
+does not store the transcript, but the external reply processor may retain the text
+sent to it for up to thirty days under its standard abuse-monitoring process.
+
 The model receives the minimum text needed to propose a reply. It returns no more than
 three short candidate replies.
 
@@ -109,6 +128,38 @@ emotion, intent, mood, cognitive state or anything else about either person, and
 nothing in the prompt asks it to. This is a deliberate regulatory choice already
 recorded in the roadmap and it is repeated here because this feature is where the
 temptation appears.
+
+### Measured reply controls
+
+Development testing used typed transcripts only. No microphone or real partner speech
+was involved.
+
+Early free-generation tests produced unsupported external facts, including invented
+appointment times. Separating system and user prompts did not remove that failure
+mode. The architecture was therefore changed so that a model first routes the
+transcript and unknown external factual questions receive fixed replies rather than a
+second generation call.
+
+On the repeated router fixture, 10 cases were run five times each. The measured result
+was 50 of 50 expected route classifications with zero differences across those runs.
+This is a result for that fixture, not evidence that routing is generally reliable.
+
+A fixed-route control test confirmed that after `UNKNOWN_OPEN_FACT` or `UNCERTAIN` is
+selected, no second generation call is made. An `OPEN_REPLY` control case made exactly
+two API calls: one router call and one reply-generation call.
+
+Bulgarian generation also exposed a language-control defect. Before the language gate,
+one repeated three-case fixture produced 88 Bulgarian candidates out of 89 and one
+mixed-script candidate. A deterministic mixed-script and script-level gate was then
+added. Its boundary tests passed 9 of 9 cases, and the same three Bulgarian
+defect-finding cases subsequently produced 90 of 90 displayed candidates in Bulgarian.
+
+That gate checks script properties, not meaning. It is not a Bulgarian-language
+classifier and it cannot reliably distinguish Bulgarian from Russian or Macedonian
+text written only with characters that the gate permits.
+
+The controls reduce observed unsupported output. They do not prove that invented facts
+or language errors are impossible.
 
 ## 6. What the partner might say
 
@@ -196,7 +247,7 @@ classification, and no named condition appears in any prompt, label or document.
 | Speech-to-text processor | TO SELECT |
 | Processor retention | TO VERIFY |
 | Processor location and transfer basis | TO VERIFY |
-| Reply generation processor terms for partner speech | TO VERIFY |
+| Reply generation processor terms for partner speech | OPENAI RECORDED, PARTNER NOTICE TO COMPLETE |
 | How the partner is informed | TO WRITE |
 | Whether the partner's agreement is recorded, and how | TO DECIDE |
 | Whether transcripts are shown before use | TO DECIDE |
