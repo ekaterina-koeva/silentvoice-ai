@@ -36,9 +36,35 @@
     return span;
   }
 
+  var READY = "Ready for typed development transcript";
+
+  // Mirrors MAX_TRANSCRIPT_CHARS in ai/partner_aware.py. The server refuses a
+  // longer transcript rather than cutting it, so the field refuses it too and
+  // says why, instead of sending half a sentence.
+  var MAX_TRANSCRIPT = 400;
+
   var state = {
-    enabled: false
+    enabled: false,
+
+    // Every request carries the token that was current when it started. A
+    // response whose token is stale is discarded instead of displayed, so a
+    // slow answer cannot overwrite a newer one, and Cancel or Turn off cannot
+    // be undone by an answer that arrives seconds later.
+    requestId: 0,
+
+    waiting: false
   };
+
+  // Moves the token on, so any response still in flight is discarded when it
+  // arrives. This does not abort the HTTP request or recall data already sent.
+  // The request may continue after the interface stops waiting for it. If the
+  // backend forwards the transcript to an external provider, this does not
+  // stop that processing. What this gives is stale-response protection, not
+  // cancellation.
+  function invalidate() {
+    state.requestId += 1;
+    setWaiting(false);
+  }
 
   function el(id) {
     return document.getElementById(id);
@@ -63,11 +89,14 @@
     }
 
     if (state.enabled) {
-      setStatus("Ready, microphone not connected");
+      setStatus(READY);
     }
   }
 
   function setEnabled(on) {
+    // Turning the mode on or off invalidates any response still in flight.
+    invalidate();
+
     state.enabled = !!on;
 
     var panel = el("partnerAwarePanel");
@@ -94,7 +123,7 @@
     clearSuggestions();
 
     if (state.enabled) {
-      setStatus("Ready, microphone not connected");
+      setStatus(READY);
     } else {
       setStatus("Off");
     }
@@ -202,20 +231,153 @@
     } else if (clean.length > 1) {
       setStatus(clean.length + " reply suggestions ready");
     } else {
-      setStatus("No reply suggestions");
+      setStatus("No reply suggestions available");
     }
 
     return clean.length > 0;
+  }
+
+  function setWaiting(on) {
+    state.waiting = !!on;
+
+    var button = el("partnerAwareSuggest");
+
+    if (button) {
+      button.disabled = state.waiting;
+    }
+
+    // Only this button waits. The ordinary communication cards are left
+    // alone on purpose.
+  }
+
+  function updateCount() {
+    var field = el("partnerAwareTranscript");
+    var counter = el("partnerAwareCount");
+
+    if (!field || !counter) {
+      return;
+    }
+
+    counter.textContent = field.value.length + " of " + MAX_TRANSCRIPT;
+  }
+
+  function unavailable() {
+    setWaiting(false);
+    setStatus("Reply suggestions are unavailable just now. The cards still work");
+  }
+
+  function requestSuggestions() {
+    if (!state.enabled || state.waiting) {
+      return;
+    }
+
+    var field = el("partnerAwareTranscript");
+
+    if (!field) {
+      return;
+    }
+
+    var text = field.value.trim();
+
+    if (!text) {
+      setStatus("Type a test transcript first");
+      return;
+    }
+
+    if (text.length > MAX_TRANSCRIPT) {
+      setStatus("That is longer than " + MAX_TRANSCRIPT + " characters. Shorten it and try again");
+      return;
+    }
+
+    var token = ++state.requestId;
+
+    // No older cards stay on screen while a newer answer is being waited for.
+    clearSuggestions();
+
+    setWaiting(true);
+    setStatus("Working on suggestions");
+
+    fetch("/partner-aware/replies", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ transcript: text })
+    })
+      .then(function (response) {
+        if (token !== state.requestId) {
+          return null;
+        }
+
+        if (response.status === 401) {
+          window.location.assign("/sign-in");
+          return null;
+        }
+
+        if (response.status === 400) {
+          setWaiting(false);
+          setStatus("That transcript was not accepted. Check its length and try again");
+          return null;
+        }
+
+        if (response.status === 429) {
+          setWaiting(false);
+          setStatus("Too many requests just now. Wait a moment and try again");
+          return null;
+        }
+
+        if (!response.ok) {
+          unavailable();
+          return null;
+        }
+
+        return response.json();
+      })
+      .then(function (data) {
+        if (data === null || token !== state.requestId) {
+          return;
+        }
+
+        setWaiting(false);
+
+        var items = (data && Array.isArray(data.suggestions)) ? data.suggestions : [];
+
+        // showSuggestions writes the status itself, the empty case included.
+        // Nothing is spoken here. A suggestion is spoken only when the person
+        // chooses it.
+        showSuggestions(items);
+      })
+      .catch(function () {
+        if (token !== state.requestId) {
+          return;
+        }
+
+        unavailable();
+      });
   }
 
   function init() {
     var toggle = el("partnerAwareToggle");
     var listen = el("partnerAwareListen");
     var cancel = el("partnerAwareCancel");
+    var suggest = el("partnerAwareSuggest");
+    var field = el("partnerAwareTranscript");
 
-    if (!toggle || !listen || !cancel) {
+    if (!toggle || !listen || !cancel || !suggest || !field) {
       return;
     }
+
+    suggest.addEventListener("click", requestSuggestions);
+
+    // Editing the transcript invalidates whatever was asked about the older
+    // text, and clears any cards still on screen. Otherwise suggestions to one
+    // sentence would sit under a different sentence and look like an answer
+    // to it.
+    field.addEventListener("input", function () {
+      updateCount();
+      invalidate();
+      clearSuggestions();
+    });
+
+    updateCount();
 
     toggle.addEventListener("click", function () {
       setEnabled(!state.enabled);
@@ -231,6 +393,10 @@
     });
 
     cancel.addEventListener("click", function () {
+      // Cancel invalidates any pending response as well as removing the cards.
+      // Without this a late response could put suggestions back on screen
+      // after the person asked for them to go.
+      invalidate();
       clearSuggestions();
     });
 

@@ -144,7 +144,7 @@
         <div>
           <div class="phrase-label">Partner-Aware Mode</div>
           <div class="partner-aware-sub">
-            Optional reply suggestions based on what a conversation partner says.
+            Optional reply suggestions for Partner-Aware development testing.
             Microphone capture is not connected in this build.
           </div>
         </div>
@@ -180,6 +180,30 @@
           id="partnerAwareCancel">
           Cancel
         </button>
+
+        <div class="partner-aware-typed">
+          <label class="partner-aware-typed-label" for="partnerAwareTranscript">
+            Development transcript only. Do not enter real partner speech yet.
+          </label>
+
+          <textarea
+            id="partnerAwareTranscript"
+            class="partner-aware-transcript"
+            rows="2"
+            maxlength="400"
+            placeholder="Type a test transcript"></textarea>
+
+          <div class="partner-aware-typed-row">
+            <button
+              type="button"
+              class="partner-aware-suggest"
+              id="partnerAwareSuggest">
+              Suggest replies
+            </button>
+
+            <span class="partner-aware-count" id="partnerAwareCount">0 of 400</span>
+          </div>
+        </div>
       </div>
 
       <div
@@ -297,7 +321,7 @@
 <footer class="app-footer">
   <div class="footer-left">
     <span class="footer-lock">🔒</span>
-    Camera video and gaze tracking stay in your browser. The server is contacted only for AI phrase generation, emergency alerts, history actions, and speech on browsers without built in speech.
+    Camera video and gaze tracking stay in your browser. The server is contacted only for AI phrase generation, emergency alerts, history actions, and speech on browsers without built in speech. Partner-Aware typed transcripts are sent to the SilentVoice server. When external reply generation is available, the transcript is sent on to the external reply generation provider. The SilentVoice application does not store the transcript. The external provider may retain API content for up to 30 days under its standard abuse monitoring controls.
   </div>
   <span>v0.1.0 &nbsp;|&nbsp; SilentVoice AI by Ekaterina Koeva</span>
 </footer>

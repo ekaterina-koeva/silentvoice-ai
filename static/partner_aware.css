@@ -116,3 +116,68 @@
     flex-direction: column;
   }
 }
+
+/* Typed development transcript. There is no microphone in this build, so the
+   words a partner would say are typed in by hand to exercise the reply path.
+   The field takes a whole row of the control strip rather than sitting
+   between the buttons. */
+.partner-aware-typed {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.partner-aware-typed-label {
+  color: #fbbf24;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.partner-aware-transcript {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #e2e8f0;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.partner-aware-transcript:focus {
+  outline: 2px solid #38bdf8;
+  outline-offset: 1px;
+}
+
+.partner-aware-typed-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.partner-aware-suggest {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 10px;
+  padding: 9px 13px;
+  background: rgba(30, 41, 59, 0.9);
+  color: #e2e8f0;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* The request button is the only control that waits. The communication cards
+   are never disabled, because a person must be able to ask for water while a
+   suggestion request is still running. */
+.partner-aware-suggest[disabled] {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.partner-aware-count {
+  color: #94a3b8;
+  font-size: 12.5px;
+}
