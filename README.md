@@ -73,7 +73,7 @@ a clinical setting without evaluation by a qualified speech and language therapi
 |-------|-----------|
 | Backend | Python and FastAPI |
 | Vision | MediaPipe Face Mesh, in the browser |
-| AI | Anthropic Claude API |
+| AI | OpenAI API |
 | Speech | Web Speech API, in the browser |
 | Frontend | HTML, CSS and JavaScript |
 | Hosting | Render |
@@ -111,11 +111,11 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-An Anthropic API key is needed for phrase generation:
+An OpenAI API key is needed for phrase generation:
 
 ```bash
-export ANTHROPIC_API_KEY=your-key-here     # macOS and Linux
-# $env:ANTHROPIC_API_KEY="your-key-here"   # Windows PowerShell
+export OPENAI_API_KEY=your-key-here     # macOS and Linux
+# $env:OPENAI_API_KEY="your-key-here"   # Windows PowerShell
 ```
 
 Set `SV_INVITATION_CODES` and `SV_APP_PASSWORD` in the same way before starting the

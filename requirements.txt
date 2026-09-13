@@ -1,4 +1,4 @@
-anthropic==0.105.2
+openai==2.9.0
 fastapi==0.136.1
 python-multipart==0.0.31
 starlette==1.6.0
