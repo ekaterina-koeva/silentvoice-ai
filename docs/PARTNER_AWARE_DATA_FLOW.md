@@ -1,16 +1,83 @@
 # Partner-Aware Mode, data flow
 
-**Status: design, written before any audio capture code exists.**
-**Date: 11 September 2026.**
-**Branch: `partner-aware-mode`. Nothing here has been implemented yet.**
+**Original design date: 11 September 2026.**
+**Implementation update: 13 September 2026.**
+**Branch: `partner-aware-mode`.**
+**Current status: microphone capture, audio handling and speech to text remain design only. A typed development transcript path is implemented and has been tested live.**
 
-This document is written first on purpose. Partner-Aware Mode is the only part of
-SilentVoice AI that captures a person other than the one using it, and that person has
-not asked for anything. Where a decision has not been taken, this document says so
-rather than guessing. Nothing marked TO SELECT, TO VERIFY or TO CONFIRM may be written
-as settled anywhere else until it is settled here.
+This document was written before microphone capture existed and is updated as the
+implementation changes. Partner-Aware is the only planned part of SilentVoice AI that
+would capture another person's voice, but the data-protection issue no longer begins
+only with future audio. The implemented development path already accepts text typed by
+hand to represent words spoken by a conversation partner and sends that text to an
+external reply-generation provider. No microphone or speech-to-text processing exists
+in that path. Where a decision has not been taken, this document says so rather than
+guessing. Nothing marked TO SELECT, TO VERIFY or TO CONFIRM may be written as settled
+anywhere else until it is settled here.
 
 ---
+
+## 0. Implemented typed development path
+
+As of 13 September 2026 Partner-Aware has one implemented development path. It
+captures no audio and performs no speech to text.
+
+The development interface accepts a transcript typed by hand in the browser. The
+field is limited to 400 characters. The browser sends that text to the
+`POST /partner-aware/replies` endpoint on the SilentVoice server. The route has a
+`require_access` dependency. When `SV_DEV_OPEN=1`, `require_access` returns
+immediately and the normal invitation/password access check is bypassed. The live
+local verification on 13 September 2026 ran with `SV_DEV_OPEN=1`, so it verified
+the Partner-Aware processing path with normal access control bypassed for local
+development. The endpoint has its own request rate budget, separate from ordinary
+phrase generation. No claim is made here about the current Render environment;
+deployment settings must be checked separately.
+
+That switch is checked before the invitation and password configuration, so it
+overrides the closed default entirely. Nothing in the code prevents it from being
+set in a deployment. The closed state of the deployment therefore rests on
+configuration practice rather than on a control in the application.
+
+The server sends the typed transcript to OpenAI `gpt-4o-mini` through Chat
+Completions for routing. The routing call uses `store=False` and returns one of
+`UNKNOWN_OPEN_FACT`, `OPEN_REPLY` or `UNCERTAIN`.
+
+`UNKNOWN_OPEN_FACT` returns fixed replies written by hand and makes no second
+provider call. `UNCERTAIN` returns a different set of fixed replies, also without a
+second provider call.
+
+One consequence has to be stated plainly. The routing function returns `UNCERTAIN`
+on any failure, including a provider that is unreachable or refuses the request. A
+failed routing call therefore produces the same three fixed replies as a genuine
+classification of doubt, and the response carries nothing that distinguishes the
+two. The interface cannot tell the person which of them happened, and no text on
+screen may imply that the suggestions were derived from what the partner said.
+
+`OPEN_REPLY` makes a second Chat Completions call to generate reply candidates.
+That call also uses `store=False`. The transcript is included in the generation
+prompt. Candidates are cleaned, limited to at most three suggestions of at most 120
+characters each, and passed through the script level language gate before display.
+
+Both provider calls in the implemented typed path use `store=False`. This is not
+Zero Data Retention. Provider retention and the training position for reply
+generation are recorded in the reply generation section below. Zero Data Retention
+is not enabled for this project.
+
+The browser shows accepted suggestions as temporary communication cards. Nothing is
+spoken automatically. After a deliberate selection the chosen suggestion becomes the
+current phrase, is spoken through the browser speech path, and is added once to
+Communication History. The typed transcript is not added to Communication History
+and the SilentVoice application does not store it.
+
+Live local verification on 13 September 2026 used the typed development transcript
+`Would you like some tea?` in English, one run. The live router took the
+`OPEN_REPLY` path, reply generation returned three suggestions, and one of them was
+selected, spoken and recorded once in Communication History. The selected text is
+absent from both fixed reply sets, so under the implemented routing it cannot have
+come from either fixed path. No microphone and no real partner speech were involved.
+
+This path must not be described as microphone capture or as speech to text. Those
+remain planned and are documented separately below.
 
 ## 1. Activation
 
