@@ -11,7 +11,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, Form, HTTPException, Request, Response, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from cards.phrases import COMMUNICATION_CARDS, PROFILE_NAMES
@@ -644,7 +644,26 @@ def generate(request: PhraseRequest, http_request: Request):
     _validate_keywords(request.keywords)
     _check_rate_limit(_client_address(http_request))
     phrase = generate_phrase(request.keywords)
-    return {"phrase": phrase, "profile": request.profile}
+
+    if not phrase:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "phrase": None,
+                "profile": request.profile,
+                "generation_available": False,
+                "message": (
+                    "Phrase generation is unavailable right now. "
+                    "Communication cards still work."
+                ),
+            },
+        )
+
+    return {
+        "phrase": phrase,
+        "profile": request.profile,
+        "generation_available": True,
+    }
 
 
 @app.post("/partner-aware/replies", dependencies=[Depends(require_access)])

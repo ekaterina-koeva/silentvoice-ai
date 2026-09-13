@@ -307,16 +307,36 @@ function clearSelection() {
 async function generatePhrase() {
   if (!selectedPhrase) { document.getElementById("phraseText").textContent="Please select a card first."; return; }
   const profile = document.getElementById("profileSelect").value;
+  const unavailableMessage = "Phrase generation is unavailable right now. Communication cards still work.";
   document.getElementById("phraseText").textContent = "Generating...";
   document.getElementById("phraseCursor").style.display = "block";
+
   try {
     const res = await fetch("/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({keywords:[selectedPhrase],profile})});
-    const data = await res.json();
+
+    let data = null;
+    try {
+      data = await res.json();
+    } catch {}
+
+    if (
+      !res.ok ||
+      !data ||
+      data.generation_available === false ||
+      typeof data.phrase !== "string" ||
+      !data.phrase.trim()
+    ) {
+      document.getElementById("phraseCursor").style.display = "none";
+      document.getElementById("phraseText").textContent =
+        data && typeof data.message === "string" ? data.message : unavailableMessage;
+      return;
+    }
+
     setPhrase(data.phrase);
     addToHistory(data.phrase,"✦");
   } catch {
-    const f = `I would like ${selectedPhrase.toLowerCase()}, please.`;
-    setPhrase(f); addToHistory(f,"✦");
+    document.getElementById("phraseCursor").style.display = "none";
+    document.getElementById("phraseText").textContent = unavailableMessage;
   }
 }
 

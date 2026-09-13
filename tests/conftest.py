@@ -5,10 +5,6 @@ from pathlib import Path
 
 import pytest
 
-# The Anthropic client is constructed at import time in ai/phrase_gen.py.
-# Tests never call the provider, but the import must not fail.
-os.environ.setdefault("ANTHROPIC_API_KEY", "test-key-not-used")
-
 # Since 25 August 2026 the working interface and its routes are behind a
 # password, because the product is under regulatory assessment and the
 # deployment is not public. The suite therefore runs with a password
