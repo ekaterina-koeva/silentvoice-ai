@@ -1,20 +1,21 @@
 """Tests for the limits on the AI phrase generation endpoint.
 
-/generate spends the Anthropic API key, so the route must reject oversized
+/generate spends the OpenAI API key, so the route must reject oversized
 input and too many requests.
 
 Since 25 August 2026 the route is also behind the password, so the tests
 authenticate. The password is not the limit: an invited person can still exhaust
 the key, which is why these limits stay.
 
-Every test here stops before the provider is called. The rate limit test fills
-the counter directly rather than making real requests.
+The validation and rate-limit tests stop before the provider is called. Provider
+failure tests use local test doubles and never make a network request.
 """
 
 import time
 
 from fastapi.testclient import TestClient
 
+import ai.phrase_gen as phrase_gen
 import main
 from main import MAX_KEYWORDS, MAX_KEYWORD_LENGTH, RATE_LIMIT_REQUESTS, app
 
@@ -73,3 +74,59 @@ def test_generation_is_not_reachable_without_the_password():
     response = client.post("/generate", json={"keywords": ["help"]})
 
     assert response.status_code == 401
+
+
+def test_missing_provider_key_is_reported_without_a_server_error(
+    auth_headers,
+    monkeypatch,
+):
+    monkeypatch.setenv("OPENAI_API_KEY", "temporary-test-key")
+    monkeypatch.delenv("OPENAI_API_KEY")
+    assert "OPENAI_API_KEY" not in phrase_gen.os.environ
+
+    monkeypatch.setattr(phrase_gen, "_client", None)
+
+    response = client.post(
+        "/generate",
+        json={"keywords": ["help"]},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "phrase": None,
+        "profile": "general",
+        "generation_available": False,
+        "message": (
+            "Phrase generation is unavailable right now. "
+            "Communication cards still work."
+        ),
+    }
+
+
+def test_provider_failure_is_reported_without_a_server_error(
+    auth_headers,
+    monkeypatch,
+):
+    class FailingCompletions:
+        def create(self, **kwargs):
+            raise RuntimeError("provider unavailable")
+
+    class FailingChat:
+        completions = FailingCompletions()
+
+    class FailingClient:
+        chat = FailingChat()
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key-not-used")
+    monkeypatch.setattr(phrase_gen, "_client", FailingClient())
+
+    response = client.post(
+        "/generate",
+        json={"keywords": ["help"]},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 503
+    assert response.json()["generation_available"] is False
+    assert response.json()["phrase"] is None

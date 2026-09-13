@@ -11,7 +11,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, Form, HTTPException, Request, Response, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from cards.phrases import COMMUNICATION_CARDS, PROFILE_NAMES
@@ -314,7 +314,7 @@ def require_access(
 # a confirmed recipient, a delivery status and an acknowledgement.
 EMERGENCY_PHRASE = "Emergency: please come immediately"
 
-# Limits on the AI phrase generation endpoint. This route spends the Anthropic
+# Limits on the AI phrase generation endpoint. This route spends the OpenAI
 # API key, so both input size and request rate need a ceiling. The invitation
 # code is not the limit: an invited person can still exhaust the key.
 MAX_KEYWORDS = 8
@@ -622,7 +622,26 @@ def generate(request: PhraseRequest, http_request: Request):
     _validate_keywords(request.keywords)
     _check_rate_limit(_client_address(http_request))
     phrase = generate_phrase(request.keywords)
-    return {"phrase": phrase, "profile": request.profile}
+
+    if not phrase:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "phrase": None,
+                "profile": request.profile,
+                "generation_available": False,
+                "message": (
+                    "Phrase generation is unavailable right now. "
+                    "Communication cards still work."
+                ),
+            },
+        )
+
+    return {
+        "phrase": phrase,
+        "profile": request.profile,
+        "generation_available": True,
+    }
 
 
 @app.post("/speak", dependencies=[Depends(require_access)])
