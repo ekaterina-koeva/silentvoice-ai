@@ -195,6 +195,7 @@
       } else if (other && g === other) {
         if (holding) { holding = false; resumeScan(); }
         paint(0);
+        pauseScan();
         if (!movedThisHold && t.holdMs >= ADVANCE_MS) {
           movedThisHold = true;
           resetHold();
