@@ -13,7 +13,7 @@ from main import app
 client = TestClient(app)
 
 PAGES = [
-    ("/", "Say what you need"),
+    ("/", "Speak with your eyes"),
     ("/how-it-works", "How it works"),
     ("/who-it-is-for", "Who it is for"),
     ("/status", "Current status"),
@@ -49,10 +49,10 @@ def test_the_current_page_is_marked_in_the_navigation():
     assert 'data-page="status" aria-current="page"' not in text
 
 
-def test_the_home_page_states_the_regulatory_position():
+def test_the_home_page_states_its_status_without_claiming_an_assessment():
     text = " ".join(client.get("/").text.split())
 
-    assert "undergoing regulatory assessment" in text
+    assert "regulatory assessment" not in text
     assert "does not contact emergency services" in text
     assert "not registered or clinically validated" in text
 
