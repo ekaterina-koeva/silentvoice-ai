@@ -21,9 +21,8 @@ from ai.phrase_gen import generate_phrase
 #
 # On 25 August 2026 the decision was taken to take SilentVoice AI down the
 # regulatory route as a medical device in the United Kingdom. Whether a public
-# deployment of an unregistered device counts as placing it on the market is a
-# question for the paid regulatory opinion, so until that opinion arrives the
-# working interface is not publicly reachable.
+# deployment of an unregistered device counts as placing it on the market has
+# not been settled, so the working interface is not publicly reachable.
 #
 # The landing page stays public. It describes the product, the person who builds
 # it and the current regulatory status, and it contains nothing interactive.
@@ -162,7 +161,7 @@ _docs_enabled = _dev_open()
 
 app = FastAPI(
     title="SilentVoice AI",
-    description="Assistive communication prototype under regulatory assessment",
+    description="Early stage assistive communication prototype",
     version="0.1.0",
     docs_url="/docs" if _docs_enabled else None,
     redoc_url="/redoc" if _docs_enabled else None,
@@ -284,7 +283,7 @@ def require_access(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=(
                 "The SilentVoice AI prototype is not available. Access is "
-                "restricted while the product is under regulatory assessment."
+                "restricted to invited people while it is an early prototype."
             ),
         )
 
@@ -546,7 +545,7 @@ def sign_in_page(request: Request):
     if not _configured():
         return _sign_in_page(
             "The prototype is not available at the moment. Access is restricted "
-            "while the product is under regulatory assessment.",
+            "to invited people while it is an early prototype.",
             disabled=True,
         )
     return _sign_in_page()
@@ -559,7 +558,7 @@ def sign_in(request: Request, code: str = Form(""), password: str = Form("")):
     if not _configured():
         return _sign_in_page(
             "The prototype is not available at the moment. Access is restricted "
-            "while the product is under regulatory assessment.",
+            "to invited people while it is an early prototype.",
             disabled=True,
         )
 
@@ -600,7 +599,7 @@ def sign_out():
 
 @app.get("/app")
 def application(request: Request):
-    """The working interface. Not public while the assessment is in progress."""
+    """The working interface. Open only to invited people."""
     if _dev_open() or _session_valid(request.cookies.get(SESSION_COOKIE)):
         return FileResponse("app/index.html")
     return RedirectResponse("/sign-in", status_code=status.HTTP_303_SEE_OTHER)
