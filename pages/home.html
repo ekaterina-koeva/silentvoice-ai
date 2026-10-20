@@ -1,89 +1,115 @@
-<div class="pagehead tall">
-  <div class="wrap">
-    <span class="badge"><span class="dot"></span> Early stage prototype, under regulatory assessment</span>
-    <h1>Say what you need, with your eyes.</h1>
-    <p>SilentVoice AI shows everyday phrases on screen. The person chooses one by looking to one
-    side, or by touch, and the device speaks it aloud.</p>
-    <p>It runs in a browser on an ordinary computer with a camera. Nothing is worn and nothing is
-    installed.</p>
-    <div class="actions">
-      <a class="btn" href="/contact">Ask for access</a>
-      <a class="btn secondary" href="/how-it-works">See how it works</a>
+<style>
+.lp { --lp-gap: clamp(28px, 6vw, 72px); }
+.lp section, .lp .hero { padding: var(--lp-gap) 0; }
+.lp .hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+.lp .tag { display: inline-block; font-size: .9rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; margin-bottom: 22px; }
+.lp h1 { font-size: clamp(2.4rem, 5.4vw, 4.2rem); line-height: 1.04; letter-spacing: -.02em; margin: 0 0 18px; color: var(--text); }
+.lp .lead { font-size: clamp(1.15rem, 1.9vw, 1.4rem); line-height: 1.45; color: var(--soft); margin: 0 0 10px; max-width: 30ch; }
+.lp .small { color: var(--muted); margin: 0; }
+.lp .go { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+.lp .screen { border: 1px solid var(--line2); border-radius: 18px; background: var(--panel-fill); padding: 22px; box-shadow: var(--shadow); }
+.lp .cam { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .85rem; margin-bottom: 16px; }
+.lp .cam i { width: 9px; height: 9px; border-radius: 50%; background: var(--green); display: inline-block; }
+.lp .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lp .cards div { border: 1px solid var(--line); border-radius: 12px; padding: 18px 14px; font-size: 1.05rem; color: var(--soft); text-align: center; }
+.lp .cards .on { border: 2px solid var(--cyan); color: var(--text); font-weight: 700; box-shadow: var(--glow); }
+.lp .said { margin-top: 16px; border-radius: 12px; padding: 14px 16px; background: var(--field); border: 1px solid var(--line); color: var(--text); font-size: 1.05rem; }
+.lp .said span { color: var(--muted); font-size: .85rem; display: block; margin-bottom: 4px; }
+.lp .photo { display: block; width: 100%; height: auto; border-radius: 18px; box-shadow: var(--shadow); }
+.lp h2 { text-transform: none; letter-spacing: -.01em; }
+.lp figcaption { color: var(--muted); font-size: .8rem; margin-top: 10px; text-align: right; }
+.lp h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin: 0 0 26px; color: var(--text); }
+.lp .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; counter-reset: s; }
+.lp .steps div { border-top: 2px solid var(--cyan); padding-top: 16px; }
+.lp .steps b { display: block; font-size: 1.25rem; color: var(--text); margin-bottom: 6px; }
+.lp .steps b::before { counter-increment: s; content: counter(s) ". "; color: var(--cyan); }
+.lp .steps p { margin: 0; color: var(--muted); }
+.lp .honest { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.lp .honest h3 { font-size: 1.15rem; margin: 0 0 10px; color: var(--text); }
+.lp .honest ul { margin: 0; padding-left: 1.1em; color: var(--muted); line-height: 1.6; }
+.lp .who { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: baseline; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 26px; }
+.lp .who p { margin: 0; color: var(--soft); }
+.lp .who nav { display: flex; gap: 20px; flex-wrap: wrap; }
+.lp .warn { color: var(--muted); font-size: .92rem; margin-top: 18px; }
+@media (max-width: 820px) {
+  .lp .hero .wrap, .lp .honest { grid-template-columns: 1fr; }
+  .lp .steps { grid-template-columns: 1fr; gap: 18px; }
+}
+</style>
+
+<div class="lp">
+
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <span class="tag">Early stage prototype. It is not registered or clinically validated.</span>
+        <h1>Speak with your eyes.</h1>
+        <p class="lead">Choose a phrase by looking to one side. The computer says it out loud.</p>
+        <p class="small">For people whose speech does not carry. Runs in a web browser with an ordinary camera.</p>
+        <div class="go">
+          <!-- DEMO VIDEO: replace VIDEO_URL and remove the comment markers once the video is published.
+          <a class="btn" href="VIDEO_URL">Watch the demo</a>
+          -->
+          <a class="btn" href="#how">See how it works</a>
+          <a class="btn secondary" href="https://github.com/ekaterina-koeva/silentvoice-ai">Source code</a>
+        </div>
+      </div>
+
+      <figure style="margin:0">
+        <img class="photo" src="/static/home-illustration.jpg" width="1200" height="900"
+        alt="A woman at home looking at a laptop that shows large phrase cards.">
+        <figcaption>Illustration.</figcaption>
+      </figure>
     </div>
   </div>
+
+  <section id="how">
+    <div class="wrap">
+      <h2>How it works</h2>
+      <div class="steps">
+        <div><b>Calibrate</b><p>Look at three dots for about half a minute.</p></div>
+        <div><b>Look</b><p>Phrases light up one at a time. Hold a look to one side to choose.</p></div>
+        <div><b>Be heard</b><p>The computer speaks the phrase.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Where it is today</h2>
+      <div class="honest">
+        <div>
+          <h3>Works</h3>
+          <ul>
+            <li>Choosing by eyes or by touch</li>
+            <li>Calibration for each person</li>
+            <li>Camera images are processed in the browser</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Not yet</h3>
+          <ul>
+            <li>There is no confirmation that a help request was received</li>
+            <li>Timings cannot be adjusted yet</li>
+          </ul>
+        </div>
+      </div>
+      <p class="warn">In September 2026 four non-developer test participants tried the prototype. One of the four participants retested the navigation fix, see <a href="https://github.com/ekaterina-koeva/silentvoice-ai/issues/2">issue #2</a>.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="who">
+        <p>Designed and built by Ekaterina Koeva.</p>
+        <nav aria-label="More">
+          <a href="/how-it-works">Full details</a>
+          <a href="https://github.com/ekaterina-koeva/silentvoice-ai">GitHub</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+      <p class="warn">Not for emergencies. It does not contact emergency services.</p>
+    </div>
+  </section>
+
 </div>
-
-<section>
-  <div class="wrap">
-    <h2>In short</h2>
-    <div class="grid three">
-      <div class="card">
-        <div class="step">01</div>
-        <h4>Calibrate</h4>
-        <p>Three dots, about half a minute. The system measures how that particular person looks
-        left, at the middle and right.</p>
-      </div>
-      <div class="card">
-        <div class="step">02</div>
-        <h4>Choose</h4>
-        <p>Cards highlight one at a time. A held look to one side selects, a look to the other side
-        moves on.</p>
-      </div>
-      <div class="card">
-        <div class="step">03</div>
-        <h4>Be heard</h4>
-        <p>The phrase is spoken aloud in a voice chosen on the device.</p>
-      </div>
-    </div>
-    <p style="margin-top:22px"><a href="/how-it-works">The longer version, with what it refuses to do</a></p>
-  </div>
-</section>
-
-<section>
-  <div class="wrap prose">
-    <h2>Current status</h2>
-    <div class="notice">
-      <h3>Early stage prototype, under regulatory assessment.</h3>
-      <p>SilentVoice AI is an early stage assistive communication prototype currently undergoing
-      regulatory assessment. It is not registered or clinically validated. Public access to the
-      working prototype is restricted while that assessment is in progress.</p>
-      <p>It must not be relied on as the sole means of emergency communication, and it does not
-      contact emergency services.</p>
-      <p><a href="/status">What that means in full</a></p>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2>What can be checked</h2>
-    <div class="prose">
-      <h3>There are no testimonials here, because there are no users yet.</h3>
-      <p>Nobody outside the project has used SilentVoice AI. Rather than borrow credibility we do
-      not have, here is what anyone is free to open and verify.</p>
-    </div>
-    <div class="grid two">
-      <div class="card">
-        <h4>The development history is public</h4>
-        <p>Every change since 19 May 2026, with messages that say what was measured and how it was
-        verified, including the defects found and corrected along the way.</p>
-      </div>
-      <div class="card">
-        <h4>Tests run on every change</h4>
-        <p>Automated tests run through GitHub Actions on every change to the main branch, and the
-        results are public.</p>
-      </div>
-      <div class="card">
-        <h4>The measurements are dated and repeatable</h4>
-        <p>The diagnostic tool that produced them is in the repository, so the measurement can be
-        repeated on another camera by anyone.</p>
-      </div>
-      <div class="card">
-        <h4>What is missing is written down too</h4>
-        <p>No users, no clinical validation, no formal usability testing. The open questions are
-        recorded rather than left out.</p>
-      </div>
-    </div>
-    <p style="margin-top:22px"><a href="https://github.com/ekaterina-koeva/silentvoice-ai">Open the repository</a></p>
-  </div>
-</section>

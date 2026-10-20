@@ -15,41 +15,50 @@
           <img src="/static/ekaterina-koeva.png" alt="Portrait of Ekaterina Koeva">
           <div class="prose">
             <h3>Ekaterina Koeva</h3>
-            <p>Ekaterina Koeva founded SilentVoice AI and began developing the project in May 2026. Her
-            work brings together Python, FastAPI, JavaScript, MediaPipe Face Mesh, browser speech
-            technology, gaze calibration, automated testing and accessibility focused interaction
-            design.</p>
-            <p>She leads the product direction, system design, implementation, testing and technical
-            documentation. The public GitHub repository records the development process through dated
-            commits, measurements, identified defects and corrections.</p>
-            <p><a href="https://www.linkedin.com/in/ekaterina-koeva-47b98342a/">LinkedIn profile</a> ·
+            <p>Ekaterina Koeva founded SilentVoice AI in May 2026 and writes its code: Python, FastAPI,
+            JavaScript, MediaPipe Face Mesh, browser speech, gaze calibration and automated tests.</p>
+            <p>Every change, measurement, defect and correction is recorded in the public
+            repository.</p>
+            <p><a href="https://www.linkedin.com/in/ekaterina-koeva-47b98342a/">LinkedIn profile</a><br>
             <a href="https://github.com/ekaterina-koeva/silentvoice-ai">View the public repository</a></p>
           </div>
         </div>
       </div>
 
       <div class="block prose">
-        <h2>Why she started</h2>
-        <p>SilentVoice AI began with a practical question: could an ordinary webcam and browser help a
-        person select and speak everyday phrases without relying on touch or dedicated eye tracking
-        hardware?</p>
-        <p>Ekaterina started testing this idea by building a browser based prototype that translates
-        deliberate gaze movements into phrase selection and speech. Her aim is to create a communication
-        route that works on widely available equipment and responds safely when the gaze signal is
-        unclear.</p>
+        <h2>What she has built</h2>
+        <p><b>A gaze reading that measures, not guesses.</b> In August 2026 she found by measurement
+        that the original gaze formula cancelled most of its own signal, replaced it with one shared
+        axis for both eyes, and added calibration for each person.
+        <a href="https://github.com/ekaterina-koeva/silentvoice-ai/commit/9329327952868905f5495f2ab592cc2d856a9bd5">See the change</a></p>
+        <p><b>A system that refuses when it is unsure.</b> An unclear reading selects nothing, and
+        selection pauses when the person moves out of position.
+        <a href="https://github.com/ekaterina-koeva/silentvoice-ai/commit/720762d3cfc84b2de57373a328f0046dd7d21a1e">See the change</a></p>
+        <p><b>Honest failures.</b> When the AI provider failed on the live site, the interface built a
+        sentence from the selected card and showed it as generated text, and that sentence was saved in
+        the history and the export. She traced the cause and made the screen report the failure
+        instead. <a href="https://github.com/ekaterina-koeva/silentvoice-ai/commit/09bb63a6c22c762d92f9304096f403a9c2887009">See the change</a></p>
+        <p><b>Privacy by default.</b> The camera starts only when the person presses the button, and the
+        face tracking library is stored in the project instead of loaded from another site.
+        <a href="https://github.com/ekaterina-koeva/silentvoice-ai/commit/62bc2085a3b69e381fb194bccc1e44125b760a98">See the camera change</a>
+        <a href="https://github.com/ekaterina-koeva/silentvoice-ai/commit/1be69d96333a153a92c2f763123a53146f27832b">See the library change</a></p>
+        <p><b>Testing with people.</b> In September 2026 four non-developer test participants tried the
+        prototype. She corrected the navigation problem they found, and one of the four participants
+        retested the fix. <a href="https://github.com/ekaterina-koeva/silentvoice-ai/issues/2">See issue #2</a></p>
       </div>
 
       <div class="block prose">
-        <h2>What makes SilentVoice AI different</h2>
-        <p>SilentVoice AI runs directly in the browser with a standard camera. Camera frames are
-        processed on the device and are not uploaded or stored.</p>
-        <p>Gaze control is calibrated for each individual person. A quality gate checks whether the
-        measured directions are sufficiently separated before gaze selection starts. When the system
-        cannot distinguish the direction reliably, it selects nothing.</p>
-        <p>The engineering process is public. Measurements, failures, corrections and test results are
-        recorded so the development can be independently reviewed.</p>
-        <p>The working prototype remains restricted to invited access while accessibility, safety and
-        regulatory preparation continue.</p>
+        <h2>Why she started</h2>
+        <p>A practical question: can an ordinary webcam and browser let a person choose and speak
+        everyday phrases without touch and without special eye tracking hardware?</p>
+        <p>She built the prototype to find out, and made it refuse to select anything when the gaze
+        signal is unclear.</p>
+      </div>
+
+      <div class="block prose">
+        <h2>In the press</h2>
+        <p>NewsPoint.bg, 28 August 2026.</p>
+        <p>tech.offnews.bg, 22 September 2026.</p>
       </div>
 
     </div>

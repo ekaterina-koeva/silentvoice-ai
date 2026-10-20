@@ -23,7 +23,7 @@ It is a communication support tool. It helps a person say something they have ch
 This is an early stage prototype under active development.
 
 The working interface is not publicly reachable. It sits behind an invitation code and a
-password while regulatory preparation continues. Only the public information pages are
+password while it is an early prototype. Only the public information pages are
 open. See Access below.
 
 What is true today:
@@ -44,10 +44,10 @@ What is true today:
 What has not been established:
 
 - There is no formal usability study, and no recorded accuracy figure for gaze selection.
-- The system has not been shown to work for people other than the developer. No
-  measurement with another person exists.
-- There are no users and no pilot.
-- The regulatory classification is not settled. A paid regulatory opinion is pending.
+- Reliable operation across users has not been established.
+  Calibration values were recorded during four informal test sessions
+  on 10 to 14 September 2026. These are not measurements of gaze accuracy.
+- The regulatory classification has not been determined.
 
 It should not be relied on as a primary communication route, and it should not be used in
 a clinical setting without evaluation by a qualified speech and language therapist.
