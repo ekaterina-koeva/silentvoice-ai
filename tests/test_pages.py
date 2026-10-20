@@ -57,10 +57,12 @@ def test_the_home_page_states_its_status_without_claiming_an_assessment():
     assert "not registered or clinically validated" in text
 
 
-def test_the_status_page_says_the_help_button_notifies_nobody():
+def test_the_status_page_describes_the_help_button_without_promising_delivery():
     text = " ".join(client.get("/status").text.split())
 
-    assert "does not notify anyone" in text
+    assert "sends an email only if recipients and an email server are configured" in text
+    assert "no confirmation that anyone read it" in text
+    assert "does not contact emergency services" in text
 
 
 def test_the_about_page_carries_the_portrait():
@@ -78,7 +80,8 @@ def test_no_page_carries_an_email_address():
         assert "mailto:" not in text
 
 
-def test_the_pages_say_they_store_nothing():
+def test_the_pages_describe_cookies_and_browser_storage():
     text = " ".join(client.get("/").text.split())
 
-    assert "sets no cookies and stores nothing on your device" in text
+    assert "These public pages set no cookies and store nothing on your device" in text
+    assert "Signing in sets one session cookie" in text

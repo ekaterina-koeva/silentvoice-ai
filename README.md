@@ -47,7 +47,6 @@ What has not been established:
 - Reliable operation across users has not been established.
   Calibration values were recorded during four informal test sessions
   on 10 to 14 September 2026. These are not measurements of gaze accuracy.
-- There are no users and no pilot.
 - The regulatory classification has not been determined.
 
 It should not be relied on as a primary communication route, and it should not be used in

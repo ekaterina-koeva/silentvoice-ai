@@ -12,8 +12,10 @@
       <h3>Early stage prototype.</h3>
       <p>SilentVoice AI is not registered, not certified and not clinically validated. Its
       regulatory classification has not been determined.</p>
-      <p>The help button speaks a request aloud on the device. It does not notify anyone and it
-      does not contact emergency services. Do not rely on it in an emergency.</p>
+      <p>The help button asks the browser to speak a request aloud. It sends an email only if
+      recipients and an email server are configured for the installation, and there is no
+      confirmation that anyone read it. It does not contact emergency services. Do not rely on it
+      in an emergency.</p>
     </div>
   </div>
 </section>
@@ -21,19 +23,31 @@
 <section>
   <div class="wrap prose">
     <h2>Testing</h2>
-    <p>In September 2026 four test participants without a technical background tried the
-    prototype. A problem they found was corrected and retested, see
+    <p>In September 2026 four non-developer test participants tried the prototype. One of the
+    four participants retested the navigation fix, see
     <a href="https://github.com/ekaterina-koeva/silentvoice-ai/issues/2">issue #2</a>. This was
-    informal usability testing. There are no users and there has been no clinical testing.</p>
+    informal usability testing.</p>
   </div>
 </section>
 
 <section>
   <div class="wrap prose">
     <h2>Your data</h2>
-    <p>Camera video is processed in the browser and never leaves the computer.</p>
-    <p>Two things can leave it, and the screen says so when they do: the chosen words, when an AI
-    phrase is requested, and the phrase text, when an online speaking voice is used.</p>
+    <p>Camera images are processed in the browser. The code does not send them to the
+    SilentVoice server or anywhere else.</p>
+    <p>When an AI phrase is requested, the selected phrase and the name of the selected card set
+    are sent to the SilentVoice server. Only the phrase is passed to OpenAI.</p>
+    <p>Speech is produced by the browser. Depending on the browser and the voice, the browser may
+    send the phrase text to the company that provides the voice. SilentVoice AI cannot reliably
+    tell which voices do this.</p>
+    <p>If the browser has no speech feature, the phrase text is sent to the SilentVoice server.
+    The server does not produce sound, so nothing is heard.</p>
+    <p>A request for assistance contacts the SilentVoice server. If recipients and an email
+    server are configured, the server sends an email with a fixed request phrase and the time.</p>
+    <p>The contact form sends your name, email address and message by email. The application does
+    not store these details in its own files or database, whether or not sending succeeds. After a
+    message is sent, the server keeps the connection address in memory for up to an hour to limit
+    repeated messages.</p>
     <p>Nothing is for sale and there is no payment system.</p>
   </div>
 </section>
