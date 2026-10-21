@@ -1,32 +1,39 @@
 </main>
-<footer>
-  <div class="wrap prose">
-    <p>SilentVoice AI. An early stage assistive communication prototype, not registered and not
-    clinically validated. Access to the working prototype is by invitation.</p>
-    <div class="row">
-      <a href="/how-it-works">How it works</a>
-      <a href="/who-it-is-for">Who it is for</a>
-      <a href="/status">Status</a>
-      <a href="/roadmap">Roadmap</a>
-      <a href="/about">About</a>
-      <a href="/questions">Questions</a>
-      <a href="/contact">Contact</a>
+<footer class="ft">
+  <style>
+    footer.ft { padding: 22px 0 26px; margin-top: 0; }
+    footer.ft .ft-top, footer.ft .ft-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 28px; }
+    footer.ft .ft-top { padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+    footer.ft .ft-bottom { padding-top: 14px; }
+    footer.ft .ft-brand { color: var(--text); font-weight: 800; }
+    footer.ft .ft-links { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+    footer.ft p { margin: 0; max-width: none; font-size: .85rem; }
+    :root[data-theme="light"] footer.ft .ft-brand { color: #eaf3ff; }
+    :root[data-theme="light"] footer.ft .brand-ai { color: #16d5ff; }
+    :root[data-theme="light"] footer.ft .themes button { color: #b8cbe3; }
+    :root[data-theme="light"] footer.ft .themes button:hover { color: #ffffff; }
+    :root[data-theme="light"] footer.ft .themes button[aria-pressed="true"] { color: #ffffff; }
+  </style>
+  <div class="wrap">
+    <div class="ft-top">
+      <span class="ft-brand">SilentVoice <span class="brand-ai">AI</span></span>
+      <nav class="ft-links" aria-label="More pages">
+        <a href="/who-it-is-for">Who it is for</a>
+        <a href="/roadmap">Roadmap</a>
+        <a href="/questions">Questions</a>
+        <a href="/status#your-data">Privacy and data</a>
+        <a href="https://github.com/ekaterina-koeva/silentvoice-ai">GitHub</a>
+        <a href="https://www.linkedin.com/in/ekaterina-koeva-47b98342a/">LinkedIn</a>
+      </nav>
     </div>
-    <div class="row">
-      <a href="https://github.com/ekaterina-koeva/silentvoice-ai">GitHub</a>
-      <a href="https://www.linkedin.com/in/ekaterina-koeva-47b98342a/">LinkedIn</a>
-      <a href="/sign-in">Invited access</a>
-    </div>
-    <div class="row">
+    <div class="ft-bottom">
+      <p>Early stage prototype. Not registered or clinically validated.</p>
       <div class="themes" role="group" aria-label="Colour theme">
-      <button type="button" data-set="system" aria-pressed="true">Dark</button>
-      <button type="button" data-set="light" aria-pressed="false">Light</button>
-      <button type="button" data-set="contrast" aria-pressed="false">Contrast</button>
+        <button type="button" data-set="system" aria-pressed="true">Dark</button>
+        <button type="button" data-set="light" aria-pressed="false">Light</button>
+        <button type="button" data-set="contrast" aria-pressed="false">Contrast</button>
+      </div>
     </div>
-    </div>
-    <p>These public pages set no cookies and store nothing on your device. Signing in sets one
-    session cookie, and the working interface keeps the calibration profile and the chosen voice
-    in the browser.</p>
   </div>
 </footer>
 <script>

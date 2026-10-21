@@ -80,8 +80,8 @@ def test_no_page_carries_an_email_address():
         assert "mailto:" not in text
 
 
-def test_the_pages_describe_cookies_and_browser_storage():
-    text = " ".join(client.get("/").text.split())
+def test_the_status_page_describes_cookies_and_browser_storage():
+    text = " ".join(client.get("/status").text.split())
 
-    assert "These public pages set no cookies and store nothing on your device" in text
+    assert "The public pages set no cookies and store nothing on your device" in text
     assert "Signing in sets one session cookie" in text
