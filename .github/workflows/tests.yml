@@ -37,3 +37,8 @@ jobs:
           node --check static/app.js
           node --check static/tracking.js
           node --check static/navigation.js
+          node --check static/calibrate.js
+          node --check static/alert.js
+
+      - name: Run browser navigation regression tests
+        run: node --test "tests-js/*.test.js"
